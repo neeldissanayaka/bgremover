@@ -1,16 +1,22 @@
 import { removeBackground } from '@imgly/background-removal';
+import {
+  verifyImageMagicBytes,
+  validateImageDimensions,
+  IMAGE_SECURITY_LIMITS,
+  sanitizeFileName,
+} from './security';
 
 export interface ValidationResult {
   valid: boolean;
   error?: string;
 }
 
-export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+export const MAX_FILE_SIZE_BYTES = IMAGE_SECURITY_LIMITS.MAX_FILE_SIZE_BYTES; // 15MB
 export const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
 export const MAX_PRE_RESIZE_WIDTH = 2048;
 
 /**
- * Validates file size (max 10MB) and MIME type
+ * Validates file size (max 15MB) and MIME type
  */
 export function validateImageFile(file: File): ValidationResult {
   if (!ALLOWED_MIME_TYPES.includes(file.type.toLowerCase())) {
@@ -24,7 +30,7 @@ export function validateImageFile(file: File): ValidationResult {
     const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
     return {
       valid: false,
-      error: `File size (${sizeMb} MB) exceeds the 10MB maximum limit. Please select a smaller photo.`,
+      error: `File size (${sizeMb} MB) exceeds the 15MB maximum limit. Please select a smaller photo.`,
     };
   }
 
@@ -32,7 +38,33 @@ export function validateImageFile(file: File): ValidationResult {
 }
 
 /**
- * Pre-resizes image to a max width of 2048px on client canvas before backend transmission
+ * Asynchronous deep validation including Magic Bytes signature verification
+ */
+export async function validateImageFileSecure(file: File | Blob): Promise<ValidationResult> {
+  // 1. Basic size limit
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+    return {
+      valid: false,
+      error: `File size (${sizeMb} MB) exceeds maximum 15MB limit.`,
+    };
+  }
+
+  // 2. Binary Magic Bytes signature validation (Prevents polyglot malware & renamed executables)
+  const magicCheck = await verifyImageMagicBytes(file);
+  if (!magicCheck.isValid) {
+    return {
+      valid: false,
+      error: magicCheck.error || 'Invalid image header signature.',
+    };
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Pre-resizes image to a max width of 2048px on client canvas before backend transmission,
+ * while validating image dimensions against pixel-bomb / decompression attacks.
  */
 export async function preResizeImage(file: File | Blob, maxWidth = MAX_PRE_RESIZE_WIDTH): Promise<{ blob: Blob; width: number; height: number; dataUrl: string }> {
   return new Promise((resolve, reject) => {
@@ -42,6 +74,13 @@ export async function preResizeImage(file: File | Blob, maxWidth = MAX_PRE_RESIZ
       img.onload = () => {
         let width = img.naturalWidth || img.width;
         let height = img.naturalHeight || img.height;
+
+        // Security check: Decompression Bomb prevention
+        const dimCheck = validateImageDimensions(width, height);
+        if (!dimCheck.isValid) {
+          reject(new Error(dimCheck.error || 'Image dimensions exceed security limits.'));
+          return;
+        }
 
         if (width > maxWidth) {
           const ratio = maxWidth / width;
@@ -97,13 +136,22 @@ export async function processBackgroundRemoval(
   let blob: Blob;
   if (typeof imageSource === 'string') {
     const res = await fetch(imageSource);
+    if (!res.ok) {
+      throw new Error(`Failed to load image from URL (HTTP ${res.status}).`);
+    }
     blob = await res.blob();
   } else {
     blob = imageSource;
   }
 
+  // Security check: Validate file integrity & Magic Bytes
+  const secValidation = await validateImageFileSecure(blob);
+  if (!secValidation.valid) {
+    throw new Error(secValidation.error || 'Image validation failed.');
+  }
+
   // Pre-resize to guarantee fast performance and <2048px limit
-  onProgress?.(30, 'Optimizing dimensions...');
+  onProgress?.(30, 'Optimizing dimensions & verifying integrity...');
   const resized = await preResizeImage(blob, MAX_PRE_RESIZE_WIDTH);
 
   // Try Server API first if accessible

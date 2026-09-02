@@ -12,12 +12,14 @@ import { DailyLimitModal } from './components/DailyLimitModal';
 import { UrlUploadModal } from './components/UrlUploadModal';
 import { AuthModal } from './components/AuthModal';
 import { PricingModal } from './components/PricingModal';
+import { LegalModal, LegalModalType } from './components/LegalModal';
 import { SAMPLE_IMAGES } from './data/samples';
 import { ProcessedImage, SampleImage, UserProfile } from './types';
 import { getDailyLimitStatus, incrementDailyLimit } from './utils/dailyLimit';
 import { getCurrentUser, logoutUser, subscribeToAuthChanges, saveCurrentUser, deductUserCredit } from './utils/auth';
 import { supabase, isSupabaseConfigured } from './utils/supabase';
 import { processBackgroundRemoval } from './utils/imageProcessing';
+import { sanitizeFileName } from './utils/security';
 import { getPlanName, redirectToLemonSqueezyCheckout } from './utils/lemonsqueezy';
 
 export default function App() {
@@ -39,6 +41,15 @@ export default function App() {
   const [isLimitModalOpen, setIsLimitModalOpen] = useState<boolean>(false);
   const [isUrlModalOpen, setIsUrlModalOpen] = useState<boolean>(false);
 
+  // Legal Modal (Privacy Policy & Terms of Service) State
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState<boolean>(false);
+  const [legalModalTab, setLegalModalTab] = useState<LegalModalType>('privacy');
+
+  const handleOpenLegal = (tab: LegalModalType = 'privacy') => {
+    setLegalModalTab(tab);
+    setIsLegalModalOpen(true);
+  };
+
   const refreshQuota = useCallback(() => {
     setDailyQuota(getDailyLimitStatus());
   }, []);
@@ -48,7 +59,26 @@ export default function App() {
     const unsubscribe = subscribeToAuthChanges((user) => {
       setCurrentUser(user);
     });
-    return () => unsubscribe();
+
+    // Support URL Hash Deep Linking (#privacy, #privacy-policy, #terms, #terms-of-service)
+    const handleHashRouting = () => {
+      const hash = window.location.hash.toLowerCase();
+      if (hash === '#privacy' || hash === '#privacy-policy') {
+        setLegalModalTab('privacy');
+        setIsLegalModalOpen(true);
+      } else if (hash === '#terms' || hash === '#terms-of-service' || hash === '#tos') {
+        setLegalModalTab('terms');
+        setIsLegalModalOpen(true);
+      }
+    };
+
+    handleHashRouting();
+    window.addEventListener('hashchange', handleHashRouting);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('hashchange', handleHashRouting);
+    };
   }, [refreshQuota]);
 
   const handleOpenAuth = (mode: 'signin' | 'signup' = 'signin') => {
@@ -168,11 +198,13 @@ export default function App() {
         setProgressStep(step);
       });
 
+      const safeFileName = sanitizeFileName(file.name);
+
       const newProcessed: ProcessedImage = {
         id: 'img_' + Date.now(),
         originalUrl,
         transparentUrl: result.transparentUrl,
-        fileName: file.name,
+        fileName: safeFileName,
         originalSize: file.size,
         width: result.width,
         height: result.height,
@@ -282,6 +314,7 @@ export default function App() {
         currentUser={currentUser}
         onOpenAuth={handleOpenAuth}
         onOpenPricing={() => openPricingModal(null)}
+        onOpenLegal={handleOpenLegal}
         onLogout={handleLogout}
       />
 
@@ -319,6 +352,7 @@ export default function App() {
       <Footer
         onOpenPricing={() => openPricingModal(null)}
         onOpenAuth={() => handleOpenAuth('signup')}
+        onOpenLegal={handleOpenLegal}
       />
 
       {/* User Authentication Modal (Google / Email) */}
@@ -328,6 +362,7 @@ export default function App() {
         initialMode={authModalMode}
         pendingPlanName={pendingCheckoutPlan ? getPlanName(pendingCheckoutPlan) : null}
         onSuccess={handleAuthSuccess}
+        onOpenLegal={handleOpenLegal}
       />
 
       {/* Lemon Squeezy Pricing & Pro Upgrade Modal */}
@@ -338,6 +373,18 @@ export default function App() {
         onRequireAuth={handleRequireAuthFromPricing}
         onUpgradeSuccess={handleUpgradeSuccess}
         alertMessage={pricingAlertMessage}
+        onOpenLegal={handleOpenLegal}
+      />
+
+      {/* Privacy Policy & Terms of Service Legal Modal */}
+      <LegalModal
+        isOpen={isLegalModalOpen}
+        onClose={() => setIsLegalModalOpen(false)}
+        initialTab={legalModalTab}
+        onOpenPricing={() => {
+          setIsLegalModalOpen(false);
+          openPricingModal(null);
+        }}
       />
 
       {/* Daily Quota Reached Modal */}

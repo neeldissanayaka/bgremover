@@ -74,7 +74,11 @@ CREATE POLICY "Users can view own transactions"
 
 -- 6. Automated PostgreSQL Trigger Function for New User Registration
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
   INSERT INTO public.profiles (
     id,
@@ -122,7 +126,7 @@ BEGIN
     
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Attach Trigger to auth.users table
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
@@ -140,7 +144,11 @@ CREATE TRIGGER on_auth_user_created
 -- If all are 0: Raises 'Insufficient credits' exception.
 -- ============================================================================
 CREATE OR REPLACE FUNCTION public.deduct_credit(user_id UUID)
-RETURNS JSONB AS $$
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 DECLARE
   v_profile RECORD;
   v_today DATE := CURRENT_DATE;

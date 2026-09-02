@@ -10,6 +10,7 @@ interface NavbarProps {
   currentUser: UserProfile | null;
   onOpenAuth: (mode?: 'signin' | 'signup') => void;
   onOpenPricing: () => void;
+  onOpenLegal?: (type: 'privacy' | 'terms') => void;
   onLogout: () => void;
 }
 
@@ -19,6 +20,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentUser,
   onOpenAuth,
   onOpenPricing,
+  onOpenLegal,
   onLogout,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -217,9 +219,29 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <button
                       onClick={() => {
                         setUserDropdownOpen(false);
+                        onOpenLegal?.('privacy');
+                      }}
+                      className="w-full text-left px-4 py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-white/[0.06] flex items-center gap-2 cursor-pointer transition-colors"
+                    >
+                      <span>Privacy Policy</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        onOpenLegal?.('terms');
+                      }}
+                      className="w-full text-left px-4 py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-white/[0.06] flex items-center gap-2 cursor-pointer transition-colors"
+                    >
+                      <span>Terms of Service</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
                         onLogout();
                       }}
-                      className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-400 hover:bg-white/[0.06] flex items-center gap-2 cursor-pointer transition-colors"
+                      className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-400 hover:bg-white/[0.06] flex items-center gap-2 cursor-pointer transition-colors border-t border-white/10 mt-1 pt-2"
                     >
                       <LogOut className="w-3.5 h-3.5 text-rose-400" />
                       <span>Sign Out</span>
@@ -349,6 +371,29 @@ export const Navbar: React.FC<NavbarProps> = ({
                 $4.99/mo
               </span>
             </button>
+            <div className="pt-2 border-t border-white/10 flex items-center gap-4 px-3 text-xs text-slate-400">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenLegal?.('privacy');
+                }}
+                className="hover:text-white"
+              >
+                Privacy Policy
+              </button>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenLegal?.('terms');
+                }}
+                className="hover:text-white"
+              >
+                Terms of Service
+              </button>
+            </div>
           </nav>
 
           <div className="pt-2 flex flex-col gap-2">

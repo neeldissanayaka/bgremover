@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Link2, X, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { Link2, X, AlertCircle, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
+import { validateSafeUrl } from '../utils/security';
 
 interface UrlUploadModalProps {
   isOpen: boolean;
@@ -22,24 +23,20 @@ export const UrlUploadModal: React.FC<UrlUploadModalProps> = ({
     e.preventDefault();
     setError('');
 
-    const cleanUrl = url.trim();
-    if (!cleanUrl) {
-      setError('Please paste a valid image URL');
-      return;
-    }
-
-    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://') && !cleanUrl.startsWith('data:image/')) {
-      setError('URL must begin with https:// or http://');
+    // Security Defense: Validate URL against SSRF and malicious network targets
+    const urlValidation = validateSafeUrl(url);
+    if (!urlValidation.isSafe || !urlValidation.url) {
+      setError(urlValidation.error || 'Please enter a valid, safe public image URL.');
       return;
     }
 
     setIsValidating(true);
     try {
-      onSubmitUrl(cleanUrl);
+      onSubmitUrl(urlValidation.url);
       setUrl('');
       onClose();
     } catch (err: any) {
-      setError(err?.message || 'Could not load image from this URL');
+      setError(err?.message || 'Could not load image from this URL. Please verify the link is accessible.');
     } finally {
       setIsValidating(false);
     }

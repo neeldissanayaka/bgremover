@@ -16,6 +16,11 @@ import {
   EyeOff,
   Database,
   Globe,
+  Printer,
+  ShieldCheck,
+  CreditCard,
+  UserCheck,
+  Cpu,
 } from 'lucide-react';
 
 export type LegalModalType = 'privacy' | 'terms';
@@ -55,6 +60,10 @@ export const LegalModal: React.FC<LegalModalProps> = ({
     };
   }, [isOpen, onClose]);
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -70,10 +79,10 @@ export const LegalModal: React.FC<LegalModalProps> = ({
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-4xl bg-[#0B0F19] border border-white/15 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col max-h-[90vh] overflow-hidden z-10 text-slate-200 font-sans">
+      <div className="relative w-full max-w-4xl bg-[#090D16] border border-white/15 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col max-h-[90vh] overflow-hidden z-10 text-slate-200 font-sans">
         
         {/* Header Bar */}
-        <div className="flex items-center justify-between px-6 py-4.5 border-b border-white/10 bg-[#070A12]/90 backdrop-blur-xl shrink-0">
+        <div className="flex items-center justify-between px-6 py-4.5 border-b border-white/10 bg-[#060911]/90 backdrop-blur-xl shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-cyan-400 shadow-sm">
               {activeTab === 'privacy' ? (
@@ -84,18 +93,29 @@ export const LegalModal: React.FC<LegalModalProps> = ({
             </div>
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-white font-['Outfit'] flex items-center gap-2">
-                <span>{activeTab === 'privacy' ? 'Privacy & Data Protection' : 'Terms of Service'}</span>
+                <span>{activeTab === 'privacy' ? 'Privacy Policy & Data Protection' : 'Terms of Service'}</span>
                 <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
                   bgremover.art
                 </span>
               </h2>
               <p className="text-xs text-slate-400">
-                Last Updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                Official Legal Agreement • Last Updated: September 2026
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Print button */}
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/15 text-slate-300 hover:text-white text-xs font-semibold transition-colors cursor-pointer border border-white/10"
+              title="Print legal document"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Print</span>
+            </button>
+
             {/* Tab switch buttons */}
             <div className="hidden sm:flex items-center bg-white/[0.06] p-1 rounded-xl border border-white/10 text-xs">
               <button
@@ -174,13 +194,13 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                   </div>
                   <div className="space-y-1 text-xs sm:text-sm">
                     <h3 className="font-bold text-white text-base font-['Outfit'] flex items-center gap-2">
-                      <span>Strict 5-Minute Automated Ephemeral Purge</span>
+                      <span>Strict 5-Minute Automated Ephemeral Purge Guarantee</span>
                       <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
                         Zero Data Retention
                       </span>
                     </h3>
                     <p className="text-slate-300">
-                      We treat your media with absolute confidentiality. All uploaded images and AI-isolated cutouts are processed strictly in volatile memory and permanently purged from our servers within <strong>5 minutes</strong>. We never store, catalogue, or sell your original photography.
+                      We treat your media with absolute confidentiality. All uploaded images and AI-isolated cutouts are processed strictly in volatile memory or client-side WebAssembly and permanently purged within <strong>5 minutes</strong>. We never store, catalogue, or sell your original photography.
                     </p>
                   </div>
                 </div>
@@ -193,20 +213,20 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                   1. Information We Collect and Process
                 </h3>
                 <p>
-                  At <strong>bgremover.art</strong>, data minimization is our core engineering standard. Depending on your interactions, we may collect:
+                  At <strong>bgremover.art</strong>, data minimization is our core engineering standard. We only collect the minimal information necessary to deliver our background removal services:
                 </p>
-                <ul className="list-disc pl-5 space-y-1.5 text-slate-300">
+                <ul className="list-disc pl-5 space-y-2 text-slate-300">
                   <li>
-                    <strong className="text-white">Transient Image Data:</strong> Image files you upload for background removal. These are utilized solely for computing alpha masks and are purged automatically within 5 minutes.
+                    <strong className="text-white">Transient Image Data:</strong> The image files you upload for background removal. Processing occurs on-device (via WebAssembly) or through ephemeral microservices. Images are used solely for calculating alpha transparency masks and are purged automatically within 5 minutes.
                   </li>
                   <li>
-                    <strong className="text-white">Account Information (Optional):</strong> When you authenticate via Google Sign-In or email, we receive your email address, name, and profile picture to maintain credit balances and plan tiers.
+                    <strong className="text-white">Account Information (Optional):</strong> When you create an account via Google Sign-In or email/password, we store your email address, name, and profile avatar to maintain your credits balance and subscription plan.
                   </li>
                   <li>
-                    <strong className="text-white">Local Browser Storage:</strong> We use your browser's <code className="text-cyan-300 bg-white/[0.06] px-1 py-0.5 rounded text-xs">localStorage</code> to track free daily quota counters (5 free removals/day) and local editor preferences without cross-site tracking.
+                    <strong className="text-white">Local Browser Storage:</strong> We use your browser's <code className="text-cyan-300 bg-white/[0.06] px-1 py-0.5 rounded text-xs">localStorage</code> to track free daily quota counters (5 free removals/day) and editor preferences without cross-site tracking or tracking cookies.
                   </li>
                   <li>
-                    <strong className="text-white">Payment & Billing Records:</strong> Subscription and credit transactions are handled exclusively through our Merchant of Record (<strong className="text-white">Lemon Squeezy</strong>). We never store raw credit card numbers or banking secrets on our servers.
+                    <strong className="text-white">Payment & Billing Records:</strong> All payment transactions are processed exclusively through our Merchant of Record (<strong className="text-white">Lemon Squeezy</strong>), which adheres to PCI-DSS Level 1 security standards. We never store raw credit card numbers or banking secrets on our servers.
                   </li>
                 </ul>
               </section>
@@ -214,7 +234,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
               {/* Section 2 */}
               <section className="space-y-3">
                 <h3 className="text-base sm:text-lg font-bold text-white font-['Outfit'] flex items-center gap-2">
-                  <Database className="w-4 h-4 text-cyan-400" />
+                  <Cpu className="w-4 h-4 text-cyan-400" />
                   2. AI Model Training & Data Isolation Guarantee
                 </h3>
                 <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 space-y-2">
@@ -222,7 +242,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                     Does bgremover.art use my images to train AI models?
                   </p>
                   <p className="text-xs sm:text-sm text-slate-300">
-                    <strong>No. Absolutely not.</strong> Your images are never fed into machine learning datasets, never used for training or fine-tuning neural networks, and never inspected by human reviewers without your explicit consent.
+                    <strong>No. Absolutely not.</strong> Your images are never used to train, retrain, or fine-tune neural network models, machine learning algorithms, or generative datasets. Your images remain private, isolated, and strictly temporary.
                   </p>
                 </div>
               </section>
@@ -234,16 +254,16 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                   3. GDPR & CCPA Compliance (Your Rights)
                 </h3>
                 <p>
-                  Regardless of your geographic location, we extend full global privacy protections:
+                  Under European General Data Protection Regulation (GDPR) and California Consumer Privacy Act (CCPA), users have strict rights regarding their personal data:
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10">
+                  <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10">
                     <p className="font-bold text-white text-xs mb-1">Right to Access & Portability</p>
-                    <p className="text-xs text-slate-400">Request an export of your registered account information and transaction ledger anytime.</p>
+                    <p className="text-xs text-slate-400">Request a full copy of your registered profile information and credit balance anytime.</p>
                   </div>
-                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10">
+                  <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10">
                     <p className="font-bold text-white text-xs mb-1">Right to Erasure (Be Forgotten)</p>
-                    <p className="text-xs text-slate-400">Request instant deletion of your user profile, email address, and associated credits.</p>
+                    <p className="text-xs text-slate-400">Request instant deletion of your account, authentication records, and associated data.</p>
                   </div>
                 </div>
               </section>
@@ -251,15 +271,33 @@ export const LegalModal: React.FC<LegalModalProps> = ({
               {/* Section 4 */}
               <section className="space-y-3">
                 <h3 className="text-base sm:text-lg font-bold text-white font-['Outfit'] flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-cyan-400" />
-                  4. Contacting Our Data Privacy Team
+                  <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                  4. Security Protocols & Encryption
                 </h3>
                 <p>
-                  If you have inquiries regarding this Privacy Policy or wish to exercise your data rights, contact us at:
+                  We implement robust enterprise cybersecurity protections:
                 </p>
-                <div className="p-3.5 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-between">
+                <ul className="list-disc pl-5 space-y-1.5 text-slate-300">
+                  <li>256-bit TLS/HTTPS in-transit encryption for all communications.</li>
+                  <li>Cryptographic password hashing using Web Crypto API SHA-256 + CSPRNG Salt.</li>
+                  <li>Magic Bytes header signature inspection against malware, polyglots, and disguised binaries.</li>
+                  <li>Protection against Decompression Bomb (Pixel Flood) attacks and SSRF network probing.</li>
+                  <li>Brute-force login defense with automatic account rate-limiting lockout.</li>
+                </ul>
+              </section>
+
+              {/* Section 5 */}
+              <section className="space-y-3">
+                <h3 className="text-base sm:text-lg font-bold text-white font-['Outfit'] flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-cyan-400" />
+                  5. Contacting Our Data Privacy Team
+                </h3>
+                <p>
+                  If you have questions regarding this Privacy Policy or wish to exercise your data rights, contact us directly:
+                </p>
+                <div className="p-4 rounded-xl bg-white/[0.04] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <span className="text-xs font-mono text-cyan-300">privacy@bgremover.art</span>
-                  <span className="text-xs text-slate-400">Response within 24–48 hours</span>
+                  <span className="text-xs text-slate-400">Response guaranteed within 24–48 hours</span>
                 </div>
               </section>
 
@@ -282,7 +320,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                       </span>
                     </h3>
                     <p className="text-slate-300">
-                      You retain full copyright, ownership, and commercial exploitation rights to all images processed through bgremover.art. Use your cutouts freely in print, e-commerce stores (Amazon, Shopify, Etsy), marketing ads, and client productions with zero royalties.
+                      You retain full copyright, ownership, and commercial rights to all images processed through bgremover.art. Use your cutouts freely in print, e-commerce stores (Amazon, Shopify, Etsy), marketing campaigns, client projects, and social media with zero royalty obligations.
                     </p>
                   </div>
                 </div>
@@ -295,52 +333,53 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                   1. Acceptance of Terms
                 </h3>
                 <p>
-                  By accessing or using <strong>bgremover.art</strong> (the "Service"), you agree to be bound by these Terms of Service. If you disagree with any portion of these terms, you may not access or use our image processing utilities.
+                  By accessing or using <strong>bgremover.art</strong> (the "Service"), you agree to be legally bound by these Terms of Service. If you do not agree to all terms, you may not use our image background removal platform.
                 </p>
               </section>
 
               {/* Section 2 */}
               <section className="space-y-3">
                 <h3 className="text-base sm:text-lg font-bold text-white font-['Outfit'] flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-cyan-400" />
-                  2. Acceptable Use & Prohibited Content
+                  <UserCheck className="w-4 h-4 text-cyan-400" />
+                  2. Acceptable Use & Content Policy
                 </h3>
                 <p>
-                  You agree to use our background removal service responsibly. You may not upload or process:
+                  You agree to use bgremover.art only for lawful purposes. You are strictly prohibited from uploading or processing:
                 </p>
                 <ul className="list-disc pl-5 space-y-1.5 text-slate-300">
-                  <li>Media depicting non-consensual imagery, abuse, violence, or child sexual abuse material (CSAM).</li>
-                  <li>Images that infringe on third-party intellectual property, trademarks, or publicity rights.</li>
-                  <li>Malicious payloads, corrupted files, or scripts intended to exploit our FastAPI and neural processing infrastructure.</li>
+                  <li>Non-consensual sexual imagery, child exploitation material (CSAM), or extreme violence.</li>
+                  <li>Images that infringe upon third-party copyrights, trademarks, or personal privacy rights.</li>
+                  <li>Corrupted files, viruses, malware, or malicious payloads designed to harm the platform.</li>
+                  <li>Automated bot scraping or high-volume DDoS attacks bypassing fair use limits.</li>
                 </ul>
               </section>
 
               {/* Section 3 */}
               <section className="space-y-3">
                 <h3 className="text-base sm:text-lg font-bold text-white font-['Outfit'] flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 text-cyan-400" />
-                  3. Pricing, Credits & Subscription Plans
+                  <CreditCard className="w-4 h-4 text-cyan-400" />
+                  3. Pricing, Credits & Subscriptions
                 </h3>
                 <div className="space-y-2 text-xs sm:text-sm text-slate-300">
                   <p>
-                    bgremover.art offers multiple tiers to suit individual creators and enterprise teams:
+                    bgremover.art provides free and paid plans to cater to individual creators and businesses:
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10">
+                    <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10">
                       <p className="font-bold text-white text-xs">Free Daily Quota</p>
-                      <p className="text-slate-400 text-xs mt-0.5">5 free removals every 24 hours for anonymous visitors and standard members.</p>
+                      <p className="text-slate-400 text-xs mt-0.5">5 free high-quality removals every 24 hours with zero watermarks.</p>
                     </div>
-                    <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10">
+                    <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10">
                       <p className="font-bold text-white text-xs">Pay-As-You-Go Packs</p>
-                      <p className="text-slate-400 text-xs mt-0.5">Non-expiring credit bundles starting from $2.00 (10–50 credits).</p>
+                      <p className="text-slate-400 text-xs mt-0.5">Non-expiring credit bundles starting from $2.00 (3, 10, or 50 credits).</p>
                     </div>
-                    <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10">
+                    <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10">
                       <p className="font-bold text-white text-xs">Lite & Pro Subscriptions</p>
-                      <p className="text-slate-400 text-xs mt-0.5">Monthly plans with recurring credit allotments and ultra-fast priority GPU servers.</p>
+                      <p className="text-slate-400 text-xs mt-0.5">Monthly recurring credit allowances with priority rendering speeds.</p>
                     </div>
-                    <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10">
+                    <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10">
                       <p className="font-bold text-white text-xs">Unlimited Annual Pass</p>
-                      <p className="text-slate-400 text-xs mt-0.5">Unlimited HD cutouts, batch processing queue, and dedicated priority support.</p>
+                      <p className="text-slate-400 text-xs mt-0.5">Unlimited HD cutouts and VIP priority queue for high-volume workflows.</p>
                     </div>
                   </div>
                 </div>
@@ -349,11 +388,11 @@ export const LegalModal: React.FC<LegalModalProps> = ({
               {/* Section 4 */}
               <section className="space-y-3">
                 <h3 className="text-base sm:text-lg font-bold text-white font-['Outfit'] flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-cyan-400" />
-                  4. Refund Policy & Money-Back Guarantee
+                  <RefreshCw className="w-4 h-4 text-cyan-400" />
+                  4. Cancellation & 7-Day Refund Policy
                 </h3>
                 <p>
-                  We strive for 100% satisfaction. If you experience technical defects, system downtime, or unsatisfactory AI cutout accuracy with paid credits, contact our support within <strong>7 days</strong> of purchase for a replacement credit or full refund.
+                  Subscriptions can be cancelled at any time with one click through your Lemon Squeezy customer portal. If you experience technical defects or are unsatisfied with credit performance, contact us within <strong>7 days</strong> of purchase for a replacement credit or full refund.
                 </p>
               </section>
 
@@ -361,11 +400,26 @@ export const LegalModal: React.FC<LegalModalProps> = ({
               <section className="space-y-3">
                 <h3 className="text-base sm:text-lg font-bold text-white font-['Outfit'] flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-cyan-400" />
-                  5. Service Availability & Disclaimers
+                  5. Disclaimers & Limitation of Liability
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-400">
-                  The service is provided on an "AS IS" and "AS AVAILABLE" basis. While our distributed neural server architecture maintains 99.9% uptime, we are not liable for transient network disruptions or third-party ISP outages.
+                  The Service is provided on an "as-is" and "as-available" basis. While we strive for maximum accuracy and 99.9% uptime, bgremover.art is not liable for indirect, incidental, or consequential damages resulting from service usage or internet downtime.
                 </p>
+              </section>
+
+              {/* Section 6 */}
+              <section className="space-y-3">
+                <h3 className="text-base sm:text-lg font-bold text-white font-['Outfit'] flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-cyan-400" />
+                  6. Contact & Legal Inquiries
+                </h3>
+                <p>
+                  For legal notices, DMCA takedown requests, or terms clarification, contact:
+                </p>
+                <div className="p-4 rounded-xl bg-white/[0.04] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-mono text-cyan-300">legal@bgremover.art</span>
+                  <span className="text-xs text-slate-400">Support: support@bgremover.art</span>
+                </div>
               </section>
 
             </div>
@@ -374,7 +428,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-4 border-t border-white/10 bg-[#070A12]/90 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0 text-xs">
+        <div className="px-6 py-4 border-t border-white/10 bg-[#060911]/90 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0 text-xs">
           <div className="text-slate-400 flex items-center gap-2 text-center sm:text-left">
             <Shield className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>Encrypted with 256-bit SSL • PCI-DSS Compliant via Lemon Squeezy</span>
@@ -407,3 +461,4 @@ export const LegalModal: React.FC<LegalModalProps> = ({
     </div>
   );
 };
+

@@ -27,6 +27,7 @@ interface PricingModalProps {
   onRequireAuth: (planId: string) => void;
   onUpgradeSuccess?: (user: UserProfile) => void;
   alertMessage?: string | null;
+  onOpenLegal?: (tab: 'privacy' | 'terms') => void;
 }
 
 export const PricingModal: React.FC<PricingModalProps> = ({
@@ -35,6 +36,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   currentUser,
   onRequireAuth,
   alertMessage,
+  onOpenLegal,
 }) => {
   const [paygOption, setPaygOption] = useState<'3' | '10' | '50'>('10');
   const [redirectingPlan, setRedirectingPlan] = useState<string | null>(null);
@@ -498,9 +500,31 @@ export const PricingModal: React.FC<PricingModalProps> = ({
             <span>256-Bit SSL Encrypted Official Lemon Squeezy Checkout</span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <CreditCard className="w-4 h-4 text-slate-400 shrink-0" />
-            <span>Visa, Mastercard, Apple Pay, Google Pay, PayPal</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-1.5 text-slate-400">
+              <CreditCard className="w-4 h-4 text-slate-400 shrink-0" />
+              <span>Cards, Apple Pay, PayPal</span>
+            </div>
+            {onOpenLegal && (
+              <>
+                <span className="text-slate-300">•</span>
+                <button
+                  type="button"
+                  onClick={() => onOpenLegal('terms')}
+                  className="text-slate-500 hover:text-blue-600 underline cursor-pointer"
+                >
+                  Terms
+                </button>
+                <span className="text-slate-300">•</span>
+                <button
+                  type="button"
+                  onClick={() => onOpenLegal('privacy')}
+                  className="text-slate-500 hover:text-blue-600 underline cursor-pointer"
+                >
+                  Privacy
+                </button>
+              </>
+            )}
           </div>
         </div>
 

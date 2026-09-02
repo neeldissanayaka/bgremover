@@ -33,6 +33,7 @@ interface AuthModalProps {
   onSuccess?: (user: UserProfile) => void;
   initialMode?: 'signin' | 'signup' | 'reset';
   pendingPlanName?: string | null;
+  onOpenLegal?: (tab: 'privacy' | 'terms') => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -41,6 +42,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onSuccess,
   initialMode = 'signin',
   pendingPlanName,
+  onOpenLegal,
 }) => {
   const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>(initialMode);
   const [email, setEmail] = useState('');
@@ -494,6 +496,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               >
                 Back to Sign in
               </button>
+            </p>
+          )}
+
+          {mode === 'signup' && onOpenLegal && (
+            <p className="pt-2 text-[11px] text-slate-400">
+              By creating an account, you agree to our{' '}
+              <button
+                type="button"
+                onClick={() => onOpenLegal('terms')}
+                className="text-slate-600 font-semibold hover:text-blue-600 underline cursor-pointer"
+              >
+                Terms of Service
+              </button>{' '}
+              and{' '}
+              <button
+                type="button"
+                onClick={() => onOpenLegal('privacy')}
+                className="text-slate-600 font-semibold hover:text-blue-600 underline cursor-pointer"
+              >
+                Privacy Policy
+              </button>
+              .
             </p>
           )}
         </div>

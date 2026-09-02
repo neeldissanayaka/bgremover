@@ -7,6 +7,11 @@ import {
   sanitizePassword,
   sanitizeName,
   AUTH_LIMITS,
+  hashPassword,
+  verifyPassword,
+  checkRateLimit,
+  recordFailedAttempt,
+  resetRateLimit,
 } from './security';
 import {
   supabase,
@@ -47,7 +52,7 @@ interface StoredAccount {
 function setAuthCookie(name: string, value: string, days = 30) {
   try {
     const expires = new Date(Date.now() + days * 864e5).toUTCString();
-    document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+    document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax; Secure`;
   } catch (e) {
     // Silently ignore in non-cookie environments
   }
@@ -55,7 +60,7 @@ function setAuthCookie(name: string, value: string, days = 30) {
 
 function clearAuthCookie(name: string) {
   try {
-    document.cookie = `${encodeURIComponent(name)}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+    document.cookie = `${encodeURIComponent(name)}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax; Secure`;
   } catch (e) {
     // Silently ignore
   }
@@ -78,16 +83,6 @@ function saveAccountsDB(db: Record<string, StoredAccount>): void {
   }
 }
 
-function simpleHash(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash |= 0;
-  }
-  return 'h_' + Math.abs(hash).toString(36);
-}
-
 function generateToken(userId: string, email: string): string {
   const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
   const payload = btoa(
@@ -96,9 +91,10 @@ function generateToken(userId: string, email: string): string {
       email,
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
+      jti: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2),
     })
   );
-  const signature = btoa(simpleHash(`${header}.${payload}.bgremover_prod_secret`));
+  const signature = btoa(`sig_${userId}_${Math.floor(Date.now() / 10000)}`);
   return `${header}.${payload}.${signature}`;
 }
 
@@ -241,7 +237,7 @@ export function saveCurrentUser(user: UserProfile | null): void {
       accounts[normalizedEmail] = {
         id: sanitizedUser.id,
         email: normalizedEmail,
-        passwordHash: existingAccount?.passwordHash || simpleHash('oauth_account'),
+        passwordHash: existingAccount?.passwordHash || 'oauth_managed_credential',
         name: sanitizedUser.name,
         avatar: sanitizedUser.avatar,
         plan: sanitizedUser.plan,
@@ -642,16 +638,16 @@ export async function signUpWithEmail(
   // 2. LOCALSTORAGE / FALLBACK AUTH (If Supabase keys are not yet added)
   const accounts = getAccountsDB();
   if (accounts[normalizedEmail] && accounts[normalizedEmail].provider === 'password') {
-    const hash = simpleHash(sanitizedPassword);
-    if (accounts[normalizedEmail].passwordHash === hash) {
+    const isMatch = await verifyPassword(sanitizedPassword, accounts[normalizedEmail].passwordHash);
+    if (isMatch) {
       return signInWithEmail(normalizedEmail, sanitizedPassword);
     } else {
       throw new Error('An account with this email already exists. Please sign in with your password.');
     }
   }
 
-  const userId = 'usr_' + Math.random().toString(36).substring(2, 11);
-  const passwordHash = simpleHash(sanitizedPassword);
+  const userId = 'usr_' + (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID().substring(0, 12) : Math.random().toString(36).substring(2, 11));
+  const passwordHash = await hashPassword(sanitizedPassword);
   const token = generateToken(userId, normalizedEmail);
 
   const newAccount: StoredAccount = {
@@ -694,6 +690,7 @@ export async function signUpWithEmail(
     emailVerified: true,
   };
 
+  resetRateLimit(normalizedEmail);
   saveCurrentUser(userProfile);
   return userProfile;
 }
@@ -713,6 +710,15 @@ export async function signInWithEmail(
     throw new Error('Please enter your account password.');
   }
 
+  // Security Defense: Check brute-force rate limit
+  const rateLimitStatus = checkRateLimit(normalizedEmail);
+  if (!rateLimitStatus.isAllowed) {
+    throw new Error(
+      rateLimitStatus.error ||
+      `Too many failed attempts. Please wait ${rateLimitStatus.lockoutRemainingSeconds || 60}s before trying again.`
+    );
+  }
+
   // 1. SUPABASE AUTH SIGN-IN
   if (supabase && isSupabaseConfigured()) {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -721,6 +727,9 @@ export async function signInWithEmail(
     });
 
     if (error) {
+      // Record failed attempt for rate limiting
+      recordFailedAttempt(normalizedEmail);
+
       // If user not found, try auto sign up
       if (error.message.toLowerCase().includes('invalid login credentials')) {
         try {
@@ -735,6 +744,9 @@ export async function signInWithEmail(
     if (!data.user) {
       throw new Error('Authentication failed. No user returned from Supabase.');
     }
+
+    // Reset rate limit on success
+    resetRateLimit(normalizedEmail);
 
     // Fetch matching row from profiles table
     const dbProfile = await fetchProfileFromSupabase(data.user.id);
@@ -752,10 +764,27 @@ export async function signInWithEmail(
     return signUpWithEmail(normalizedEmail, sanitizedPassword);
   }
 
-  const passwordHash = simpleHash(sanitizedPassword);
-  if (existingAccount.passwordHash && existingAccount.passwordHash !== passwordHash && existingAccount.provider === 'password') {
-    throw new Error('Incorrect password. Please verify your credentials and try again.');
+  const isPasswordValid = await verifyPassword(sanitizedPassword, existingAccount.passwordHash);
+  if (!isPasswordValid && existingAccount.provider === 'password') {
+    const lockout = recordFailedAttempt(normalizedEmail);
+    if (lockout.isLocked) {
+      throw new Error(
+        `Account locked due to 5 consecutive failed login attempts. Please wait ${lockout.lockoutRemainingSeconds} seconds.`
+      );
+    }
+    const remaining = checkRateLimit(normalizedEmail).remainingAttempts;
+    throw new Error(`Incorrect password. ${remaining} attempt(s) remaining before security lockout.`);
   }
+
+  // If matched with old legacy hash, upgrade to strong SHA-256 salted hash
+  if (!existingAccount.passwordHash.startsWith('sha256$')) {
+    existingAccount.passwordHash = await hashPassword(sanitizedPassword);
+    accounts[normalizedEmail] = existingAccount;
+    saveAccountsDB(accounts);
+  }
+
+  // Reset rate limit on successful authentication
+  resetRateLimit(normalizedEmail);
 
   const token = generateToken(existingAccount.id, normalizedEmail);
   const today = getTodayDateString();
