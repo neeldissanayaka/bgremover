@@ -148,6 +148,50 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================================================
+-- Sync / Backfill any already registered users from auth.users to public.profiles
+-- ============================================================================
+INSERT INTO public.profiles (
+  id,
+  email,
+  name,
+  avatar_url,
+  plan,
+  credits,
+  daily_free_credits,
+  paid_credits,
+  plan_credits,
+  is_pro,
+  last_reset_date,
+  created_at,
+  updated_at
+)
+SELECT
+  u.id,
+  COALESCE(u.email, u.raw_user_meta_data->>'email', ''),
+  COALESCE(
+    u.raw_user_meta_data->>'full_name',
+    u.raw_user_meta_data->>'name',
+    NULLIF(split_part(u.email, '@', 1), ''),
+    'User'
+  ),
+  COALESCE(
+    u.raw_user_meta_data->>'avatar_url',
+    u.raw_user_meta_data->>'picture',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=' || u.id::text
+  ),
+  'free',
+  5,
+  5,
+  0,
+  0,
+  FALSE,
+  CURRENT_DATE,
+  NOW(),
+  NOW()
+FROM auth.users u
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================================
 -- 7. Multi-Tier Atomic Credit Deduction RPC Function (3-Tier Priority)
 -- ============================================================================
 -- Priority 0: Active Unlimited Pass -> 0 credits consumed.
