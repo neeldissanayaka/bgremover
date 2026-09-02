@@ -1,0 +1,58 @@
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="favCheckGrid" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="4" height="4" fill="#E2E8F0" />
+      <rect x="4" width="4" height="4" fill="#FFFFFF" />
+      <rect y="4" width="4" height="4" fill="#FFFFFF" />
+      <rect x="4" y="4" width="4" height="4" fill="#E2E8F0" />
+    </pattern>
+    <linearGradient id="favCardGrad" x1="20" y1="15" x2="80" y2="85" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0066FF" />
+      <stop offset="0.6" stop-color="#0052CC" />
+      <stop offset="1" stop-color="#3B82F6" />
+    </linearGradient>
+    <linearGradient id="favFoldGrad" x1="24" y1="18" x2="42" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA" />
+      <stop offset="1" stop-color="#0047BA" />
+    </linearGradient>
+    <linearGradient id="favPersonGrad" x1="38" y1="30" x2="68" y2="78" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0066FF" />
+      <stop offset="0.5" stop-color="#4F46E5" />
+      <stop offset="1" stop-color="#7C3AED" />
+    </linearGradient>
+    <linearGradient id="favSparkCyan" x1="68" y1="10" x2="82" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#38BDF8" />
+      <stop offset="1" stop-color="#0080FF" />
+    </linearGradient>
+    <linearGradient id="favSparkPurple" x1="72" y1="24" x2="84" y2="36" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C084FC" />
+      <stop offset="1" stop-color="#7C3AED" />
+    </linearGradient>
+    <clipPath id="favCardClip">
+      <rect x="18" y="14" width="60" height="68" rx="14" />
+    </clipPath>
+  </defs>
+
+  <!-- Circular background badge with gradient ring -->
+  <circle cx="50" cy="50" r="48" fill="#FFFFFF" />
+  <circle cx="50" cy="50" r="47" stroke="#0084FF" stroke-width="3" fill="none" />
+
+  <!-- Document Card with Fold, Left Blue, Right Grid, Avatar & Swoosh -->
+  <g clipPath="url(#favCardClip)">
+    <rect x="18" y="14" width="60" height="68" fill="url(#favCardGrad)" />
+    <rect x="46" y="14" width="32" height="68" fill="url(#favCheckGrid)" />
+    <!-- Avatar -->
+    <circle cx="48" cy="42" r="9" fill="url(#favPersonGrad)" />
+    <path d="M30 80C30 67 38 58 48 58C58 58 66 67 66 80V82H30V80Z" fill="url(#favPersonGrad)" />
+    <!-- White Swoosh -->
+    <path d="M14 82C28 78 39 68 51 51C62 34 69 20 74 13C75 15 71 31 58 49C46 66 32 77 14 82Z" fill="#FFFFFF" opacity="0.95" />
+  </g>
+
+  <!-- Fold corner -->
+  <path d="M18 14H36C36 26 29 32 18 32V14Z" fill="url(#favFoldGrad)" />
+
+  <!-- Sparkles -->
+  <path d="M80 12L82 6L84 12L90 14L84 16L82 22L80 16L74 14L80 12Z" fill="url(#favSparkCyan)" />
+  <path d="M72 23L73 20L74 23L77 24L74 25L73 28L72 25L69 24L72 23Z" fill="#38BDF8" />
+  <path d="M86 28L87.5 23L89 28L94 29.5L89 31L87.5 36L86 31L81 29.5L86 28Z" fill="url(#favSparkPurple)" />
+</svg>

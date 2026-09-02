@@ -1,0 +1,18 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Python & Backend temporary files
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+temp_storage/
+*.onnx
+.pytest_cache/

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bgremover.art - Remove Image Background 100% Free & Automatic</title>
+  <meta name="description" content="Automatic background remover utility. Isolate subjects, create transparent PNGs, change passport photo background colors, and export in Ultra-HD.">
+  <meta property="og:title" content="bgremover.art - Remove Image Background 100% Free & Automatic">
+  <meta property="og:description" content="Automatic background remover utility. Isolate subjects, create transparent PNGs, change passport photo background colors, and export in Ultra-HD.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://assets.lemonsqueezy.com/lemon.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    h1, h2, h3, h4, .font-heading { font-family: 'Outfit', sans-serif; }
+  </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+  
+  <!-- Clean Navbar: [ Logo: bgremover.art ] | [ Tools ] [ Features ] [ Pricing ] | [ Login / Sign Up ] -->
+  <header class="bg-white border-b border-slate-100 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-6 sm:px-10 h-20 flex items-center justify-between">
+      <div class="flex items-center space-x-8 lg:space-x-12">
+        <a href="/" class="text-2xl font-black text-blue-600 tracking-tighter font-heading">
+          bgremover<span class="text-slate-300">.art</span>
+        </a>
+        <nav class="hidden md:flex items-center space-x-8 text-sm font-semibold text-slate-600">
+          <a href="#tools" class="hover:text-blue-600 transition-colors">Tools</a>
+          <a href="#features" class="hover:text-blue-600 transition-colors">Features</a>
+          <a href="#pricing" class="hover:text-blue-600 transition-colors flex items-center gap-1">
+            <span>Pricing</span>
+            <span class="px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold">Pro</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Right Navbar: Quota Badge & User Profile / Login -->
+      <div class="flex items-center space-x-4">
+        <div id="quotaBadge" class="bg-blue-50 text-blue-700 px-3.5 py-1.5 rounded-full text-xs font-bold border border-blue-100 flex items-center">
+          <span class="w-2 h-2 bg-blue-600 rounded-full mr-2 animate-pulse"></span>
+          <span id="quotaCount">5/5</span>&nbsp;FREE LEFT
+        </div>
+
+        <!-- Dynamic User Auth Section -->
+        <div id="authContainer">
+          <button id="authBtn" onclick="openAuthModal('signin')" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer">
+            Sign In
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main class="max-w-7xl mx-auto px-6 sm:px-10 py-12 flex-grow space-y-24">
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div class="space-y-6">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-extrabold uppercase">
+          100% Automatic & Free
+        </div>
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.1] font-heading">
+          Remove Image Background
+        </h1>
+        <p class="text-slate-600 text-base sm:text-lg leading-relaxed max-w-lg">
+          Instantly isolate people, products, vehicles, and graphics with pristine edge detection. Download transparent HD PNGs or change background colors.
+        </p>
+      </div>
+
+      <div class="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-xl text-center space-y-6">
+        <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp" class="hidden">
+        <div id="dropzone" class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-10 cursor-pointer transition-colors bg-slate-50/50">
+          <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3 font-bold">
+            ↑
+          </div>
+          <p class="text-slate-800 font-bold text-base mb-1">Drag & Drop Image Here</p>
+          <p class="text-slate-400 text-xs mb-5">Supports JPG, PNG, WebP up to 10MB</p>
+          <button type="button" onclick="document.getElementById('imageInput').click()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3.5 rounded-2xl text-sm shadow-md shadow-blue-500/20 cursor-pointer">
+            Upload Image
+          </button>
+        </div>
+        <div id="statusMessage" class="hidden text-xs font-bold text-blue-600"></div>
+      </div>
+    </div>
+
+    <!-- 4-TIER PRICING SECTION (REMOVE.BG UX MATCH) -->
+    <section id="pricing" class="pt-8">
+      <div class="text-center max-w-xl mx-auto space-y-2 mb-12">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider">
+          Pricing & Subscription Plans
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-heading">
+          Simple, Transparent Pricing
+        </h2>
+        <p class="text-sm text-slate-500">
+          Pay as you go or subscribe for monthly allowances. Cancel anytime with 1 click.
+        </p>
+      </div>
+
+      <!-- 4 Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch">
+        
+        <!-- CARD 1: Pay-as-you-go -->
+        <div class="rounded-3xl p-6 border border-slate-200 bg-white flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div class="space-y-4">
+            <div>
+              <span class="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">One-Off</span>
+              <h3 class="text-xl font-bold text-slate-900 font-heading mt-0.5">Pay-as-you-go</h3>
+              <p class="text-xs text-slate-500 mt-1">One-time purchase, no subscription</p>
+            </div>
+
+            <!-- Dropdown selector -->
+            <div class="space-y-1.5">
+              <label class="block text-[11px] font-bold text-slate-700">Select Credit Pack:</label>
+              <select id="paygSelect" onchange="updatePaygPrice()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 cursor-pointer">
+                <option value="payg_3|2.00|3">3 credits - $2.00</option>
+                <option value="payg_10|5.00|10" selected>10 credits - $5.00</option>
+                <option value="payg_50|15.00|50">50 credits - $15.00</option>
+              </select>
+            </div>
+
+            <div class="flex items-baseline gap-1">
+              <span id="paygPriceDisplay" class="text-3xl font-extrabold text-slate-900 font-heading">$5.00</span>
+              <span class="text-xs text-slate-400 font-semibold">one-time</span>
+            </div>
+
+            <ul class="space-y-2 text-xs text-slate-600 pt-3 border-t border-slate-100">
+              <li class="flex items-center gap-2">✓ <span>One-time payment</span></li>
+              <li class="flex items-center gap-2">✓ <span>Credits never expire</span></li>
+              <li class="flex items-center gap-2">✓ <span>No monthly commitment</span></li>
+              <li class="flex items-center gap-2">✓ <span>Lossless PNG export</span></li>
+            </ul>
+          </div>
+
+          <div class="pt-6">
+            <button onclick="handleCheckoutPayg()" class="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all cursor-pointer">
+              Buy Now
+            </button>
+          </div>
+        </div>
+
+        <!-- CARD 2: Lite ($4.99 / mo) -->
+        <div class="rounded-3xl p-6 border border-slate-200 bg-white flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div class="space-y-4">
+            <div>
+              <span class="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">Entry Subscription</span>
+              <h3 class="text-xl font-bold text-slate-900 font-heading mt-0.5">Lite</h3>
+              <p class="text-xs text-slate-500 mt-1">For casual individuals & creators</p>
+            </div>
+
+            <div class="flex items-baseline gap-1">
+              <span class="text-3xl font-extrabold text-slate-900 font-heading">$4.99</span>
+              <span class="text-xs text-slate-400 font-semibold">/ month</span>
+            </div>
+
+            <ul class="space-y-2 text-xs text-slate-600 pt-3 border-t border-slate-100">
+              <li class="flex items-center gap-2 font-semibold text-slate-800">✓ <span>Use up to 40 credits per month</span></li>
+              <li class="flex items-center gap-2">✓ <span>AI Photo Editor</span></li>
+              <li class="flex items-center gap-2">✓ <span>Remove background</span></li>
+              <li class="flex items-center gap-2">✓ <span>Standard HD Quality</span></li>
+              <li class="flex items-center gap-2">✓ <span>No Ads</span></li>
+            </ul>
+          </div>
+
+          <div class="pt-6">
+            <button onclick="handleCheckout('lite_monthly')" class="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all cursor-pointer">
+              Subscribe
+            </button>
+          </div>
+        </div>
+
+        <!-- CARD 3: Pro ($9.99 / mo) - Most Popular & Yellow Border -->
+        <div class="relative rounded-3xl p-6 border-2 border-amber-400 bg-amber-50/15 shadow-xl flex flex-col justify-between">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider shadow-sm">
+            Most Popular
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <span class="text-[11px] font-extrabold uppercase text-amber-700 tracking-wider">Best Value</span>
+              <h3 class="text-xl font-bold text-slate-900 font-heading mt-0.5">Pro</h3>
+              <p class="text-xs text-slate-500 mt-1">For active designers & studios</p>
+            </div>
+
+            <div class="flex items-baseline gap-1">
+              <span class="text-3xl font-extrabold text-slate-900 font-heading">$9.99</span>
+              <span class="text-xs text-slate-500 font-semibold">/ month</span>
+            </div>
+
+            <ul class="space-y-2 text-xs text-slate-700 pt-3 border-t border-amber-200/60">
+              <li class="flex items-center gap-2 font-bold text-slate-900">⚡ <span>Use up to 200 credits per month</span></li>
+              <li class="flex items-center gap-2">✓ <span>AI Photo Editor</span></li>
+              <li class="flex items-center gap-2 font-semibold text-amber-900">✓ <span>Ultra-HD 4K exports</span></li>
+              <li class="flex items-center gap-2 font-semibold text-amber-900">✓ <span>100% Ad-Free</span></li>
+              <li class="flex items-center gap-2">✓ <span>Priority processing queue</span></li>
+              <li class="flex items-center gap-2">✓ <span>Bulk editing feature</span></li>
+            </ul>
+          </div>
+
+          <div class="pt-6">
+            <button onclick="handleCheckout('pro_monthly')" class="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs shadow-md shadow-amber-500/20 transition-all cursor-pointer">
+              Subscribe
+            </button>
+          </div>
+        </div>
+
+        <!-- CARD 4: Unlimited Pass ($19.99 / mo) -->
+        <div class="rounded-3xl p-6 border border-slate-200 bg-white flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div class="space-y-4">
+            <div>
+              <span class="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">Enterprise Power</span>
+              <h3 class="text-xl font-bold text-slate-900 font-heading mt-0.5">Unlimited Pass</h3>
+              <p class="text-xs text-slate-500 mt-1">High volume & e-commerce brands</p>
+            </div>
+
+            <div class="flex items-baseline gap-1">
+              <span class="text-3xl font-extrabold text-slate-900 font-heading">$19.99</span>
+              <span class="text-xs text-slate-400 font-semibold">/ month</span>
+            </div>
+
+            <ul class="space-y-2 text-xs text-slate-600 pt-3 border-t border-slate-100">
+              <li class="flex items-center gap-2 font-bold text-slate-900">⚡ <span>Unlimited background removals</span></li>
+              <li class="flex items-center gap-2 font-semibold text-slate-800">✓ <span>Fast VIP Processing Queue</span></li>
+              <li class="flex items-center gap-2 font-semibold text-slate-800">✓ <span>Everything in Pro, plus Commercial Rights</span></li>
+              <li class="flex items-center gap-2">✓ <span>Ultra-HD 4K lossless downloads</span></li>
+              <li class="flex items-center gap-2">✓ <span>Dedicated priority support</span></li>
+            </ul>
+          </div>
+
+          <div class="pt-6">
+            <button onclick="handleCheckout('unlimited_monthly')" class="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all cursor-pointer">
+              Subscribe
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Clean Footer: No Framework Mentions -->
+  <footer class="bg-slate-950 text-slate-400 py-12 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto px-6 sm:px-10 flex flex-col sm:flex-row justify-between items-center gap-6 text-xs">
+      <div>
+        <p class="font-bold text-white text-sm">bgremover.art</p>
+        <p class="text-slate-500 mt-1">© 2026 bgremover.art. All rights reserved. Automatic Background Removal Utility.</p>
+      </div>
+      <div class="flex gap-6">
+        <a href="#tools" class="hover:text-white transition-colors">Tools</a>
+        <a href="#features" class="hover:text-white transition-colors">Features</a>
+        <a href="#pricing" class="hover:text-white transition-colors">Pricing</a>
+        <a href="#privacy" class="hover:text-white transition-colors">Privacy Policy</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/js/main.js"></script>
+</body>
+</html>

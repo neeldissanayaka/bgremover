@@ -1,0 +1,7 @@
+# Robots.txt for bgremover.art
+User-agent: *
+Allow: /
+Disallow: /api/webhook/
+
+# Sitemaps
+Sitemap: https://bgremover.art/sitemap.xml
