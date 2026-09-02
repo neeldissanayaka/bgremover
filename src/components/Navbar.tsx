@@ -52,8 +52,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Logo size="md" variant="dark" />
             </a>
 
-            {/* Clean User-Focused Navigation Links: [ Tools ] [ Features ] [ Pricing ] */}
-            <nav className="hidden md:flex items-center space-x-8 text-sm font-semibold text-slate-300">
+            {/* Clean User-Focused Navigation Links: [ How It Works ] [ Tools ] [ Passport ID ] [ FAQ ] [ Pricing ] */}
+            <nav className="hidden md:flex items-center space-x-7 text-sm font-semibold text-slate-300">
+              <a
+                href="#how-it-works"
+                className="cursor-pointer hover:text-cyan-400 transition-colors"
+              >
+                How It Works
+              </a>
               <a
                 href="#features"
                 className="cursor-pointer hover:text-cyan-400 transition-colors"
@@ -64,7 +70,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 href="#passport-presets"
                 className="cursor-pointer hover:text-cyan-400 transition-colors"
               >
-                Features
+                Passport & ID
+              </a>
+              <a
+                href="#faq"
+                className="cursor-pointer hover:text-cyan-400 transition-colors"
+              >
+                FAQ
               </a>
               <button
                 type="button"
@@ -344,20 +356,34 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
 
-          <nav className="flex flex-col space-y-2 text-sm font-semibold text-slate-300">
+          <nav className="flex flex-col space-y-1 text-sm font-semibold text-slate-300">
+            <a
+              href="#how-it-works"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-xl hover:bg-white/[0.06]"
+            >
+              How It Works
+            </a>
             <a
               href="#features"
               onClick={() => setMobileMenuOpen(false)}
               className="px-3 py-2 rounded-xl hover:bg-white/[0.06]"
             >
-              Tools
+              Tools & Features
             </a>
             <a
               href="#passport-presets"
               onClick={() => setMobileMenuOpen(false)}
               className="px-3 py-2 rounded-xl hover:bg-white/[0.06]"
             >
-              Features
+              Passport & ID Standards
+            </a>
+            <a
+              href="#faq"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-xl hover:bg-white/[0.06]"
+            >
+              Frequently Asked Questions
             </a>
             <button
               onClick={() => {

@@ -1,6 +1,7 @@
 {
   "name": "bgremover.art",
-  "description": "100% Free and automatic AI background remover utility. Remove image backgrounds instantly with custom color backdrops, passport presets, blur effects, and before/after slider comparison.",
+  "description": "bgremover.art is the #1 free AI background remover online. Automatically remove image backgrounds in 5 seconds with 100% precision. 1-click HD cutout, transparent PNG, passport photo colors, & DSLR blur. 100% Free with zero watermarks.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
+

@@ -257,6 +257,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             {/* Main Headline */}
             <div className="space-y-2 sm:space-y-4">
               <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-[66px] xl:text-[74px] font-extrabold leading-[1.12] sm:leading-[1.05] tracking-tight text-white font-['Outfit'] drop-shadow-sm">
+                <span className="sr-only">bgremover - Free AI </span>
                 Remove Image <br className="hidden sm:inline" />
                 <span className="bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
                   Background
@@ -273,6 +274,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 </span>
               </div>
             </div>
+
 
             {/* Social Proof & Features */}
             <div className="space-y-3 sm:space-y-5 pt-1">

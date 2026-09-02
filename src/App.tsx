@@ -45,11 +45,6 @@ export default function App() {
   const [isLegalModalOpen, setIsLegalModalOpen] = useState<boolean>(false);
   const [legalModalTab, setLegalModalTab] = useState<LegalModalType>('privacy');
 
-  const handleOpenLegal = (tab: LegalModalType = 'privacy') => {
-    setLegalModalTab(tab);
-    setIsLegalModalOpen(true);
-  };
-
   const refreshQuota = useCallback(() => {
     setDailyQuota(getDailyLimitStatus());
   }, []);
@@ -60,7 +55,7 @@ export default function App() {
       setCurrentUser(user);
     });
 
-    // Support URL Hash Deep Linking (#privacy, #privacy-policy, #terms, #terms-of-service)
+    // Support Clean URL Routing & Deep Linking (#privacy, #terms, #pricing, #signin, #signup)
     const handleHashRouting = () => {
       const hash = window.location.hash.toLowerCase();
       if (hash === '#privacy' || hash === '#privacy-policy') {
@@ -69,8 +64,22 @@ export default function App() {
       } else if (hash === '#terms' || hash === '#terms-of-service' || hash === '#tos') {
         setLegalModalTab('terms');
         setIsLegalModalOpen(true);
+      } else if (hash === '#pricing' || hash === '#plans') {
+        setIsPricingModalOpen(true);
+      } else if (hash === '#signin' || hash === '#login') {
+        setAuthModalMode('signin');
+        setIsAuthModalOpen(true);
+      } else if (hash === '#signup' || hash === '#register') {
+        setAuthModalMode('signup');
+        setIsAuthModalOpen(true);
       }
     };
+
+    // Clean any messy search parameters from checkout/OAuth redirects after reading
+    if (window.location.search && !window.location.search.includes('error=')) {
+      const cleanUrl = window.location.pathname + (window.location.hash || '');
+      window.history.replaceState(null, document.title, cleanUrl);
+    }
 
     handleHashRouting();
     window.addEventListener('hashchange', handleHashRouting);
@@ -81,10 +90,23 @@ export default function App() {
     };
   }, [refreshQuota]);
 
+  const cleanUrlPath = () => {
+    if (window.location.hash) {
+      window.history.replaceState(null, document.title, window.location.pathname);
+    }
+  };
+
+  const handleOpenLegal = (tab: LegalModalType = 'privacy') => {
+    setLegalModalTab(tab);
+    setIsLegalModalOpen(true);
+    window.history.pushState(null, '', `#${tab}`);
+  };
+
   const handleOpenAuth = (mode: 'signin' | 'signup' = 'signin') => {
     setPendingCheckoutPlan(null);
     setAuthModalMode(mode);
     setIsAuthModalOpen(true);
+    window.history.pushState(null, '', `#${mode}`);
   };
 
   const handleRequireAuthFromPricing = (planId: string) => {
@@ -93,10 +115,12 @@ export default function App() {
     setPricingAlertMessage(null);
     setAuthModalMode('signin');
     setIsAuthModalOpen(true);
+    window.history.pushState(null, '', '#signin');
   };
 
   const handleAuthSuccess = (user: UserProfile) => {
     setCurrentUser(user);
+    cleanUrlPath();
     if (pendingCheckoutPlan) {
       const planToRedirect = pendingCheckoutPlan;
       setPendingCheckoutPlan(null);
@@ -111,6 +135,7 @@ export default function App() {
   const handleCloseAuthModal = () => {
     setIsAuthModalOpen(false);
     setPendingCheckoutPlan(null);
+    cleanUrlPath();
   };
 
   const handleLogout = () => {
@@ -121,16 +146,19 @@ export default function App() {
   const handleUpgradeSuccess = (updatedUser: UserProfile) => {
     setCurrentUser(updatedUser);
     setPricingAlertMessage(null);
+    cleanUrlPath();
   };
 
   const openPricingModal = (alertMsg?: string | null) => {
     setPricingAlertMessage(alertMsg || null);
     setIsPricingModalOpen(true);
+    window.history.pushState(null, '', '#pricing');
   };
 
   const closePricingModal = () => {
     setPricingAlertMessage(null);
     setIsPricingModalOpen(false);
+    cleanUrlPath();
   };
 
   // Atomic credit deduction and quota verification execution guard
@@ -379,7 +407,10 @@ export default function App() {
       {/* Privacy Policy & Terms of Service Legal Modal */}
       <LegalModal
         isOpen={isLegalModalOpen}
-        onClose={() => setIsLegalModalOpen(false)}
+        onClose={() => {
+          setIsLegalModalOpen(false);
+          cleanUrlPath();
+        }}
         initialTab={legalModalTab}
         onOpenPricing={() => {
           setIsLegalModalOpen(false);

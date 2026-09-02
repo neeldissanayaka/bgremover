@@ -2,52 +2,78 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   
-  <!-- Homepage & Core Background Remover Tool -->
+  <!-- Primary Homepage: AI Background Remover Online -->
   <url>
     <loc>https://bgremover.art/</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-09-02</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://bgremover.art/favicon.svg</image:loc>
+      <image:title>bgremover.art - Free AI Background Remover Logo</image:title>
+      <image:caption>Automatic AI Background Removal in 5 seconds with HD Cutouts</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1200&amp;auto=format&amp;fit=crop&amp;q=80</image:loc>
+      <image:title>bgremover AI Portrait Background Removal Demo</image:title>
+      <image:caption>Crystal clear cutout with transparent PNG background</image:caption>
+    </image:image>
   </url>
 
-  <!-- Features & Editor Tools Anchor Page -->
-  <url>
-    <loc>https://bgremover.art/#features</loc>
-    <lastmod>2026-09-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <!-- Passport Photo Background Changer Tool -->
-  <url>
-    <loc>https://bgremover.art/#passport-presets</loc>
-    <lastmod>2026-09-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <!-- Pricing & Subscription Tiers -->
-  <url>
-    <loc>https://bgremover.art/#pricing</loc>
-    <lastmod>2026-09-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- How It Works Guide -->
+  <!-- How It Works Step-by-Step Guide -->
   <url>
     <loc>https://bgremover.art/#how-it-works</loc>
-    <lastmod>2026-09-01</lastmod>
-    <changefreq>monthly</changefreq>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Passport & Visa Photo Solid Color Presets -->
+  <url>
+    <loc>https://bgremover.art/#passport-presets</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Core Features: Hair Cutout, Bokeh Blur, E-Commerce White Backdrop -->
+  <url>
+    <loc>https://bgremover.art/#features</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 
-  <!-- FAQ & Help Section -->
+  <!-- Pricing, Subscriptions & Pay-as-you-go Credits -->
+  <url>
+    <loc>https://bgremover.art/#pricing</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Frequently Asked Questions & Guides -->
   <url>
     <loc>https://bgremover.art/#faq</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-09-02</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Privacy Policy & Terms of Service -->
+  <url>
+    <loc>https://bgremover.art/#privacy</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>https://bgremover.art/#terms</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
 
 </urlset>
+

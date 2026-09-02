@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+html {
+  scroll-behavior: smooth;
+}
+
+section[id] {
+  scroll-margin-top: 5.5rem;
+}
+
 @layer utilities {
   /* Checkerboard background for transparent cutouts */
   .bg-checkerboard {

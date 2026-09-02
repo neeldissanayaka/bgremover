@@ -1,10 +1,10 @@
 {
   "name": "bgremover.art - Free AI Background Remover",
-  "short_name": "bgremover.art",
+  "short_name": "bgremover",
   "description": "Remove image backgrounds automatically in 5 seconds with 100% AI accuracy. Free, fast, high-quality HD download with no signup required.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "background_color": "#05070B",
   "theme_color": "#0066FF",
   "orientation": "portrait-primary",
   "icons": [
@@ -15,10 +15,12 @@
       "purpose": "any maskable"
     },
     {
-      "src": "/apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png"
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ],
-  "categories": ["photo", "utilities", "productivity"]
+  "categories": ["photo", "utilities", "productivity", "graphics", "design"]
 }
+

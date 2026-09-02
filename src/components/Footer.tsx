@@ -90,37 +90,53 @@ export const Footer: React.FC<FooterProps> = ({ onOpenPricing, onOpenAuth, onOpe
               </h4>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <button
-                    onClick={onOpenPricing}
-                    className="hover:text-emerald-400 transition-colors text-left cursor-pointer"
+                  <a
+                    href="#pricing"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onOpenPricing();
+                    }}
+                    className="hover:text-emerald-400 transition-colors text-left cursor-pointer inline-block"
                   >
                     Pay-as-you-go (from $2.00)
-                  </button>
+                  </a>
                 </li>
                 <li>
-                  <button
-                    onClick={onOpenPricing}
-                    className="hover:text-blue-400 transition-colors text-left cursor-pointer"
+                  <a
+                    href="#pricing"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onOpenPricing();
+                    }}
+                    className="hover:text-blue-400 transition-colors text-left cursor-pointer inline-block"
                   >
                     Lite ($4.99/mo)
-                  </button>
+                  </a>
                 </li>
                 <li>
-                  <button
-                    onClick={onOpenPricing}
+                  <a
+                    href="#pricing"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onOpenPricing();
+                    }}
                     className="hover:text-amber-400 transition-colors flex items-center gap-1.5 text-left cursor-pointer"
                   >
                     <Crown className="w-3.5 h-3.5 text-amber-400" />
                     Pro ($20.00/mo)
-                  </button>
+                  </a>
                 </li>
                 <li>
-                  <button
-                    onClick={onOpenPricing}
-                    className="hover:text-purple-400 transition-colors text-left cursor-pointer"
+                  <a
+                    href="#pricing"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onOpenPricing();
+                    }}
+                    className="hover:text-purple-400 transition-colors text-left cursor-pointer inline-block"
                   >
                     Unlimited Pass ($300/year)
-                  </button>
+                  </a>
                 </li>
               </ul>
             </div>
@@ -135,22 +151,28 @@ export const Footer: React.FC<FooterProps> = ({ onOpenPricing, onOpenAuth, onOpe
                   Uploaded images are processed securely and automatically purged from memory within 5 minutes.
                 </li>
                 <li>
-                  <button
-                    type="button"
-                    onClick={() => onOpenLegal?.('privacy')}
+                  <a
+                    href="#privacy"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onOpenLegal?.('privacy');
+                    }}
                     className="hover:text-cyan-400 text-slate-400 transition-colors flex items-center gap-1.5 cursor-pointer text-left"
                   >
                     <span>Privacy Policy & Data Security</span>
-                  </button>
+                  </a>
                 </li>
                 <li>
-                  <button
-                    type="button"
-                    onClick={() => onOpenLegal?.('terms')}
+                  <a
+                    href="#terms"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onOpenLegal?.('terms');
+                    }}
                     className="hover:text-cyan-400 text-slate-400 transition-colors flex items-center gap-1.5 cursor-pointer text-left"
                   >
                     <span>Terms of Service & License</span>
-                  </button>
+                  </a>
                 </li>
                 <li className="text-xs text-slate-500 pt-1">
                   Domain: <strong className="text-slate-300">bgremover.art</strong>
@@ -164,25 +186,38 @@ export const Footer: React.FC<FooterProps> = ({ onOpenPricing, onOpenAuth, onOpe
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <p>© {new Date().getFullYear()} bgremover.art. All rights reserved. Automatic Background Removal Utility.</p>
             <div className="flex items-center gap-4">
-              <button
-                type="button"
-                onClick={() => onOpenLegal?.('privacy')}
+              <a
+                href="#privacy"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onOpenLegal?.('privacy');
+                }}
                 className="hover:text-slate-300 cursor-pointer"
               >
                 Privacy Policy
-              </button>
+              </a>
               <span>•</span>
-              <button
-                type="button"
-                onClick={() => onOpenLegal?.('terms')}
+              <a
+                href="#terms"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onOpenLegal?.('terms');
+                }}
                 className="hover:text-slate-300 cursor-pointer"
               >
                 Terms of Service
-              </button>
+              </a>
               <span>•</span>
-              <button onClick={onOpenPricing} className="hover:text-slate-300 cursor-pointer">
+              <a
+                href="#pricing"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onOpenPricing();
+                }}
+                className="hover:text-slate-300 cursor-pointer"
+              >
                 Pricing
-              </button>
+              </a>
             </div>
           </div>
 
