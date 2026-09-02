@@ -79,7 +79,24 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  v_user_email TEXT;
+  v_user_name TEXT;
+  v_user_avatar TEXT;
 BEGIN
+  v_user_email := COALESCE(NEW.email, NEW.raw_user_meta_data->>'email', '');
+  v_user_name := COALESCE(
+    NEW.raw_user_meta_data->>'full_name',
+    NEW.raw_user_meta_data->>'name',
+    NULLIF(split_part(v_user_email, '@', 1), ''),
+    'User'
+  );
+  v_user_avatar := COALESCE(
+    NEW.raw_user_meta_data->>'avatar_url',
+    NEW.raw_user_meta_data->>'picture',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=' || COALESCE(NULLIF(v_user_email, ''), NEW.id::text)
+  );
+
   INSERT INTO public.profiles (
     id,
     email,
@@ -97,17 +114,9 @@ BEGIN
   )
   VALUES (
     NEW.id,
-    NEW.email,
-    COALESCE(
-      NEW.raw_user_meta_data->>'full_name',
-      NEW.raw_user_meta_data->>'name',
-      split_part(NEW.email, '@', 1)
-    ),
-    COALESCE(
-      NEW.raw_user_meta_data->>'avatar_url',
-      NEW.raw_user_meta_data->>'picture',
-      'https://api.dicebear.com/7.x/avataaars/svg?seed=' || NEW.email
-    ),
+    v_user_email,
+    v_user_name,
+    v_user_avatar,
     'free',
     5,
     5,
@@ -119,11 +128,15 @@ BEGIN
     NOW()
   )
   ON CONFLICT (id) DO UPDATE SET
-    email = EXCLUDED.email,
+    email = CASE WHEN EXCLUDED.email <> '' THEN EXCLUDED.email ELSE public.profiles.email END,
     name = COALESCE(EXCLUDED.name, public.profiles.name),
     avatar_url = COALESCE(EXCLUDED.avatar_url, public.profiles.avatar_url),
     updated_at = NOW();
     
+  RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  -- Prevents auth rollback if profile creation throws any unexpected constraint warning
+  RAISE WARNING 'handle_new_user exception caught: %', SQLERRM;
   RETURN NEW;
 END;
 $$;

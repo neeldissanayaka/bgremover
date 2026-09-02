@@ -75,8 +75,17 @@ export default function App() {
       }
     };
 
-    // Clean any messy search parameters from checkout/OAuth redirects after reading
-    if (window.location.search && !window.location.search.includes('error=')) {
+    // Handle any OAuth error parameters safely and sanitize address bar
+    const searchParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+    const errorDesc = searchParams.get('error_description') || hashParams.get('error_description');
+    const errorCode = searchParams.get('error_code') || hashParams.get('error_code');
+
+    if (errorDesc || errorCode) {
+      console.warn('[Auth Redirect Notice]:', errorDesc || errorCode);
+      // Clean ugly error query and hash from browser address bar immediately
+      window.history.replaceState(null, document.title, window.location.pathname);
+    } else if (window.location.search) {
       const cleanUrl = window.location.pathname + (window.location.hash || '');
       window.history.replaceState(null, document.title, cleanUrl);
     }
