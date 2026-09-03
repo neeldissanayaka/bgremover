@@ -1,6 +1,5 @@
 import React from 'react';
 import { ShoppingBag, UserCheck, Car, Sparkles, Sliders, ShieldCheck } from 'lucide-react';
-import { motion } from 'motion/react';
 
 export const FeaturesSection: React.FC = () => {
   const features = [
@@ -46,13 +45,7 @@ export const FeaturesSection: React.FC = () => {
     <section id="features" className="py-16 sm:py-24 bg-white border-t border-slate-200/80 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <motion.div 
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center max-w-3xl mx-auto space-y-4 mb-16"
-        >
+        <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
           <span className="px-3.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wider">
             All-in-One Utility
           </span>
@@ -62,20 +55,15 @@ export const FeaturesSection: React.FC = () => {
           <p className="text-base sm:text-lg text-slate-600">
             Everything you need to produce studio-quality cutouts and custom backgrounds in record time.
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feat, idx) => {
+          {features.map((feat) => {
             const Icon = feat.icon;
             return (
-              <motion.div
+              <div
                 key={feat.title}
-                initial={{ opacity: 0, y: 28 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{ duration: 0.45, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
-                whileHover={{ y: -4 }}
-                className="p-8 rounded-3xl bg-slate-50/70 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all hover:bg-white flex flex-col justify-between group"
+                className="p-8 rounded-3xl bg-slate-50/70 border border-slate-200/90 shadow-2xs hover:shadow-md hover:-translate-y-1 transition-all duration-200 hover:bg-white flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-5">
@@ -98,7 +86,7 @@ export const FeaturesSection: React.FC = () => {
                 <div className="mt-6 pt-4 border-t border-slate-200/50 flex items-center gap-1.5 text-xs font-semibold text-blue-600">
                   <span>Included 100% Free</span>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>

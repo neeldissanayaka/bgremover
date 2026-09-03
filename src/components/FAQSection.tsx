@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { ChevronDown, HelpCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
 
 export const FAQSection: React.FC = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -44,13 +43,7 @@ export const FAQSection: React.FC = () => {
     <section id="faq" className="py-16 sm:py-24 bg-white border-t border-slate-200/80 overflow-hidden">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <motion.div 
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center space-y-4 mb-14"
-        >
+        <div className="text-center space-y-4 mb-14">
           <span className="px-3.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5">
             <HelpCircle className="w-3.5 h-3.5" />
             Frequently Asked Questions
@@ -61,18 +54,14 @@ export const FAQSection: React.FC = () => {
           <p className="text-base sm:text-lg text-slate-600">
             Learn more about bgremover.art, image formats, passport regulations, and security.
           </p>
-        </motion.div>
+        </div>
 
         <div className="space-y-4">
           {faqs.map((faq, index) => {
             const isOpen = openIndex === index;
             return (
-              <motion.div
+              <div
                 key={faq.q}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-30px' }}
-                transition={{ duration: 0.4, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
                 className={`rounded-2xl border transition-all duration-200 ${
                   isOpen
                     ? 'border-blue-200 bg-blue-50/20 shadow-sm'
@@ -98,20 +87,18 @@ export const FAQSection: React.FC = () => {
                   </div>
                 </button>
 
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.25, ease: 'easeInOut' }}
-                      className="px-6 pb-6 pt-1 text-sm text-slate-600 leading-relaxed border-t border-blue-100/50"
-                    >
+                <div
+                  className={`grid transition-[grid-template-rows,opacity] duration-200 ease-in-out ${
+                    isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    <div className="px-6 pb-6 pt-1 text-sm text-slate-600 leading-relaxed border-t border-blue-100/50">
                       {faq.a}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             );
           })}
         </div>

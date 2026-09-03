@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'motion/react';
 import {
   Upload,
   Sparkles,
@@ -214,11 +213,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         
         {/* Error Notification Banner if file error */}
         {errorMsg && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="mb-6 p-4 rounded-2xl bg-rose-950/80 border border-rose-800/80 text-rose-200 text-sm flex items-center justify-between shadow-lg backdrop-blur-md"
+          <div
+            className="mb-6 p-4 rounded-2xl bg-rose-950/80 border border-rose-800/80 text-rose-200 text-sm flex items-center justify-between shadow-lg backdrop-blur-md animate-in fade-in"
           >
             <div className="flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
@@ -230,29 +226,23 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             >
               Dismiss
             </button>
-          </motion.div>
+          </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 lg:gap-16 items-center">
           
           {/* ================= LEFT COLUMN: HERO HEADLINE & VALUE PROPOSITION ================= */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+          <div
             className="lg:col-span-6 space-y-4 sm:space-y-6 lg:space-y-8 text-center lg:text-left"
           >
             
             {/* Top Pill Badge */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.45, delay: 0.1 }}
+            <div
               className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-white/[0.06] border border-white/15 text-cyan-300 text-[10px] sm:text-xs font-bold tracking-wide uppercase shadow-lg shadow-black/40 backdrop-blur-md"
             >
               <Sparkles className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-cyan-400 animate-pulse" />
               Next-Gen AI Image Cutout
-            </motion.div>
+            </div>
 
             {/* Main Headline */}
             <div className="space-y-2 sm:space-y-4">
@@ -315,13 +305,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
             </div>
 
-          </motion.div>
+          </div>
 
           {/* ================= RIGHT COLUMN: FLOATING DROPZONE & UPLOAD CARD ================= */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          <div
             className="lg:col-span-6 flex flex-col items-center relative w-full z-20"
           >
             
@@ -432,10 +419,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
 
             {/* Sample Image Picker Bar (Below the card as requested) */}
-            <motion.div 
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.25 }}
+            <div 
               className="mt-4 sm:mt-6 w-full max-w-md z-20"
             >
               <div className="flex items-center justify-between mb-2 sm:mb-3">
@@ -451,16 +435,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
 
               <div className="grid grid-cols-4 gap-2 sm:gap-3">
-                {SAMPLE_IMAGES.map((sample, idx) => (
-                  <motion.div
+                {SAMPLE_IMAGES.map((sample) => (
+                  <div
                     key={sample.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.35, delay: 0.3 + idx * 0.06 }}
-                    whileHover={{ scale: 1.06 }}
-                    whileTap={{ scale: 0.95 }}
                     onClick={() => onSampleSelected(sample)}
-                    className="aspect-square rounded-xl sm:rounded-2xl bg-[#131826] border border-white/15 shadow-md cursor-pointer hover:border-cyan-400/80 hover:shadow-[0_0_20px_rgba(6,182,212,0.35)] transition-all duration-200 overflow-hidden relative group touch-manipulation"
+                    className="aspect-square rounded-xl sm:rounded-2xl bg-[#131826] border border-white/15 shadow-md cursor-pointer hover:border-cyan-400/80 hover:shadow-[0_0_20px_rgba(6,182,212,0.35)] hover:scale-105 active:scale-95 transition-all duration-200 overflow-hidden relative group touch-manipulation"
                     title={`Try sample: ${sample.title}`}
                   >
                     <img
@@ -474,12 +453,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                         {sample.title}
                       </span>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
 
-          </motion.div>
+          </div>
 
         </div>
 

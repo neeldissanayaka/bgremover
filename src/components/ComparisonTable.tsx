@@ -1,6 +1,5 @@
 import React from 'react';
 import { Check, Sparkles } from 'lucide-react';
-import { motion } from 'motion/react';
 
 export const ComparisonTable: React.FC = () => {
   const comparisonRows = [
@@ -52,13 +51,7 @@ export const ComparisonTable: React.FC = () => {
     <section id="comparison" className="py-16 sm:py-24 bg-slate-50 border-t border-slate-200/80 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <motion.div 
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center max-w-3xl mx-auto space-y-4 mb-16"
-        >
+        <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
           <span className="px-3.5 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold uppercase tracking-wider">
             Clear Comparison
           </span>
@@ -68,15 +61,9 @@ export const ComparisonTable: React.FC = () => {
           <p className="text-base sm:text-lg text-slate-600">
             No credit cards, no monthly subscription traps, and no watermarks.
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-40px' }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-white rounded-3xl border border-slate-200/90 shadow-lg overflow-hidden"
-        >
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -125,7 +112,7 @@ export const ComparisonTable: React.FC = () => {
               </tbody>
             </table>
           </div>
-        </motion.div>
+        </div>
 
       </div>
     </section>

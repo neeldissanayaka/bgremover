@@ -1,6 +1,5 @@
 import React from 'react';
 import { Upload, Sparkles, Download, CheckCircle2 } from 'lucide-react';
-import { motion } from 'motion/react';
 
 export const HowItWorks: React.FC = () => {
   const steps = [
@@ -31,13 +30,7 @@ export const HowItWorks: React.FC = () => {
     <section id="how-it-works" className="py-16 sm:py-24 bg-white border-t border-slate-200/80 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <motion.div 
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center max-w-3xl mx-auto space-y-4 mb-16"
-        >
+        <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
           <span className="px-3.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider">
             Simple 3-Step Process
           </span>
@@ -47,20 +40,15 @@ export const HowItWorks: React.FC = () => {
           <p className="text-base sm:text-lg text-slate-600">
             No design skills or expensive Photoshop licenses required. bgremover.art runs 100% in your browser and on high-speed neural hardware.
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-          {steps.map((item, idx) => {
+          {steps.map((item) => {
             const Icon = item.icon;
             return (
-              <motion.div
+              <div
                 key={item.step}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{ duration: 0.5, delay: idx * 0.15, ease: [0.16, 1, 0.3, 1] }}
-                whileHover={{ y: -4 }}
-                className="relative bg-slate-50 rounded-3xl p-8 border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow group flex flex-col justify-between"
+                className="relative bg-slate-50 rounded-3xl p-8 border border-slate-200/90 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 group flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">
@@ -84,7 +72,7 @@ export const HowItWorks: React.FC = () => {
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                   <span>Instant & 100% Free</span>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>
