@@ -105,8 +105,11 @@ export function mapSupabaseToUserProfile(
   const proExpiresAt = profile?.pro_expires_at || null;
   const lastResetDate = profile?.last_reset_date || getTodayString();
 
-  // Multi-Pool credit balances
-  const dailyFreeCredits = typeof profile?.daily_free_credits === 'number' ? profile.daily_free_credits : 3;
+  // Multi-Pool credit balances: strict 3 free daily credits limit
+  let dailyFreeCredits = typeof profile?.daily_free_credits === 'number' ? profile.daily_free_credits : 3;
+  if (plan === 'free' && dailyFreeCredits > 3) {
+    dailyFreeCredits = 3;
+  }
   const paidCredits = typeof profile?.paid_credits === 'number' ? profile.paid_credits : 0;
   const planCredits = typeof profile?.plan_credits === 'number' ? profile.plan_credits : 0;
 

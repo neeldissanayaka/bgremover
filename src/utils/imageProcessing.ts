@@ -1,4 +1,5 @@
 import { removeBackground } from '@imgly/background-removal';
+import type { BackgroundMode } from '../types';
 import {
   verifyImageMagicBytes,
   validateImageDimensions,
@@ -202,7 +203,6 @@ export async function processBackgroundRemoval(
       output: {
         format: 'image/png',
         quality: 1,
-        type: 'foreground',
       },
       progress: (key: string, current: number, total: number) => {
         if (total > 0) {
@@ -226,3 +226,121 @@ export async function processBackgroundRemoval(
       'Background removal AI could not load. Please check the network connection and try again.'
     );
   }
+}
+
+function loadImageElement(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Failed to load image: ' + src));
+    img.src = src;
+  });
+}
+
+export interface CompositeCanvasOptions {
+  originalUrl: string;
+  transparentUrl: string;
+  mode: BackgroundMode;
+  solidColor?: string;
+  blurRadius?: number;
+  customBackdropUrl?: string;
+}
+
+/**
+ * Renders the final composite cutout + selected backdrop to an offscreen canvas
+ */
+export async function renderCompositeCanvas(
+  options: CompositeCanvasOptions
+): Promise<HTMLCanvasElement> {
+  const cutoutImg = await loadImageElement(options.transparentUrl);
+  const width = cutoutImg.naturalWidth || cutoutImg.width;
+  const height = cutoutImg.naturalHeight || cutoutImg.height;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Failed to get 2D canvas context for rendering composite');
+  }
+
+  // Draw background layer based on mode
+  if (options.mode === 'color') {
+    ctx.fillStyle = options.solidColor || '#FFFFFF';
+    ctx.fillRect(0, 0, width, height);
+  } else if (options.mode === 'blur') {
+    try {
+      const bgImg = await loadImageElement(options.originalUrl);
+      ctx.save();
+      const blur = options.blurRadius ?? 15;
+      if (blur > 0) {
+        ctx.filter = `blur(${blur}px)`;
+      }
+      // Scale slightly up to prevent dark blur edges
+      const scale = blur > 0 ? 1.05 : 1;
+      const w = width * scale;
+      const h = height * scale;
+      const x = (width - w) / 2;
+      const y = (height - h) / 2;
+      ctx.drawImage(bgImg, x, y, w, h);
+      ctx.restore();
+    } catch (e) {
+      console.warn('Failed to draw blur background:', e);
+    }
+  } else if (options.mode === 'customImage' && options.customBackdropUrl) {
+    try {
+      const bgImg = await loadImageElement(options.customBackdropUrl);
+      const bgW = bgImg.naturalWidth || bgImg.width;
+      const bgH = bgImg.naturalHeight || bgImg.height;
+      const scale = Math.max(width / bgW, height / bgH);
+      const w = bgW * scale;
+      const h = bgH * scale;
+      const x = (width - w) / 2;
+      const y = (height - h) / 2;
+      ctx.drawImage(bgImg, x, y, w, h);
+    } catch (e) {
+      console.warn('Failed to draw custom backdrop image:', e);
+    }
+  }
+
+  // Draw foreground cutout subject on top
+  ctx.drawImage(cutoutImg, 0, 0, width, height);
+
+  return canvas;
+}
+
+/**
+ * Downloads the rendered canvas as a PNG or WebP file
+ */
+export async function downloadCanvasImage(
+  canvas: HTMLCanvasElement,
+  fileName: string,
+  format: 'png' | 'webp' = 'png',
+  quality = 0.95
+): Promise<void> {
+  const mimeType = format === 'webp' ? 'image/webp' : 'image/png';
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(new Error('Failed to create download image blob'));
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const cleanName = sanitizeFileName(fileName.replace(/\.[^/.]+$/, ''));
+        a.download = `${cleanName || 'bgremover_cutout'}.${format}`;
+        a.href = url;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        resolve();
+      },
+      mimeType,
+      quality
+    );
+  });
+}
+

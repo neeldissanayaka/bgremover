@@ -1,11 +1,11 @@
 import { DailyLimitData } from '../types';
-import { getCurrentUser } from './auth';
 
-const GUEST_STORAGE_KEY = 'bgremover_daily_limit_v1';
-const USER_QUOTA_PREFIX = 'bgremover_user_quota_';
-const MAX_FREE_DAILY = 3;
+export const MAX_FREE_DAILY = 3;
+const DEVICE_USAGE_KEY = 'bgremover_device_free_usage_v2';
+const LEGACY_GUEST_KEY = 'bgremover_daily_limit_v1';
+const AUTH_STORAGE_KEY = 'bgremover_user_v1';
 
-function getTodayString(): string {
+export function getTodayString(): string {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -13,15 +13,106 @@ function getTodayString(): string {
   return `${year}-${month}-${day}`;
 }
 
-function getStorageKeyForCurrentSubject(): string {
-  const user = getCurrentUser();
-  if (user && user.id) {
-    return `${USER_QUOTA_PREFIX}${user.id}`;
-  }
-  return GUEST_STORAGE_KEY;
+interface DeviceUsageRecord {
+  date: string;
+  used: number;
 }
 
-export function getDailyLimitStatus(overrideUserId?: string): {
+/**
+ * Returns how many free credits have been consumed on this browser/device today (0 to 3).
+ * Automatically resets to 0 when the date rolls over at midnight.
+ */
+export function getDeviceFreeCreditsUsedToday(): number {
+  try {
+    const today = getTodayString();
+    const raw = localStorage.getItem(DEVICE_USAGE_KEY);
+    if (raw) {
+      const parsed: DeviceUsageRecord = JSON.parse(raw);
+      if (parsed.date === today) {
+        return Math.min(MAX_FREE_DAILY, Math.max(0, Number(parsed.used) || 0));
+      }
+    }
+
+    // Check if legacy guest key has usage for today
+    const legacyRaw = localStorage.getItem(LEGACY_GUEST_KEY);
+    if (legacyRaw) {
+      const parsedLegacy = JSON.parse(legacyRaw);
+      if (parsedLegacy.date === today && typeof parsedLegacy.count === 'number') {
+        const legacyUsed = Math.min(MAX_FREE_DAILY, Math.max(0, parsedLegacy.count));
+        saveDeviceDailyUsed(legacyUsed);
+        return legacyUsed;
+      }
+    }
+
+    // New day or first run: initialize with 0 used
+    saveDeviceDailyUsed(0);
+    return 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Saves the current device's daily used count.
+ */
+export function saveDeviceDailyUsed(used: number): void {
+  try {
+    const today = getTodayString();
+    const record: DeviceUsageRecord = {
+      date: today,
+      used: Math.min(MAX_FREE_DAILY, Math.max(0, used)),
+    };
+    localStorage.setItem(DEVICE_USAGE_KEY, JSON.stringify(record));
+    
+    // Also update legacy format so older components/caches remain synchronized
+    const legacyData: DailyLimitData = {
+      date: today,
+      count: record.used,
+      maxLimit: MAX_FREE_DAILY,
+    };
+    localStorage.setItem(LEGACY_GUEST_KEY, JSON.stringify(legacyData));
+  } catch (err) {
+    console.warn('[Quota] Could not save device usage:', err);
+  }
+}
+
+/**
+ * Records consumption of 1 daily free credit across both guest & logged-in free sessions.
+ * Returns the new used count (max 3).
+ */
+export function recordDeviceFreeCreditUsed(): number {
+  const currentUsed = getDeviceFreeCreditsUsedToday();
+  const nextUsed = Math.min(MAX_FREE_DAILY, currentUsed + 1);
+  saveDeviceDailyUsed(nextUsed);
+  return nextUsed;
+}
+
+/**
+ * Syncs the local device usage with authoritative server-side usage if server reports higher.
+ */
+export function syncDeviceDailyUsed(serverUsed: number): void {
+  if (typeof serverUsed === 'number' && !isNaN(serverUsed)) {
+    const localUsed = getDeviceFreeCreditsUsedToday();
+    if (serverUsed > localUsed) {
+      saveDeviceDailyUsed(serverUsed);
+    }
+  }
+}
+
+/**
+ * Reads user auth state safely without circular dependencies.
+ */
+function getStoredUserFast(): { isPro?: boolean; plan?: string; credits?: number; dailyFreeCredits?: number } | null {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function getDailyLimitStatus(): {
   used: number;
   remaining: number;
   total: number;
@@ -29,10 +120,10 @@ export function getDailyLimitStatus(overrideUserId?: string): {
   date: string;
 } {
   const today = getTodayString();
-  const user = getCurrentUser();
+  const user = getStoredUserFast();
 
-  // If user is an active Pro or VIP subscriber, they have unlimited / paid credits
-  if (user && user.isPro) {
+  // If user is an active Pro or VIP subscriber with unlimited plan
+  if (user && user.isPro && user.plan === 'unlimited') {
     return {
       used: 0,
       remaining: 9999,
@@ -42,56 +133,27 @@ export function getDailyLimitStatus(overrideUserId?: string): {
     };
   }
 
-  const storageKey = overrideUserId ? `${USER_QUOTA_PREFIX}${overrideUserId}` : getStorageKeyForCurrentSubject();
-
-  try {
-    const raw = localStorage.getItem(storageKey);
-    if (!raw) {
-      return {
-        used: 0,
-        remaining: MAX_FREE_DAILY,
-        total: MAX_FREE_DAILY,
-        isLimitReached: false,
-        date: today,
-      };
-    }
-
-    const data: DailyLimitData = JSON.parse(raw);
-    if (data.date !== today) {
-      // New day, auto-reset counter to 3 free per 24 hours
-      const freshData: DailyLimitData = {
-        date: today,
-        count: 0,
-        maxLimit: MAX_FREE_DAILY,
-      };
-      localStorage.setItem(storageKey, JSON.stringify(freshData));
-      return {
-        used: 0,
-        remaining: MAX_FREE_DAILY,
-        total: MAX_FREE_DAILY,
-        isLimitReached: false,
-        date: today,
-      };
-    }
-
-    const count = data.count || 0;
-    const remaining = Math.max(0, MAX_FREE_DAILY - count);
-    return {
-      used: count,
-      remaining,
-      total: MAX_FREE_DAILY,
-      isLimitReached: remaining <= 0,
-      date: today,
-    };
-  } catch {
+  // If user has paid credits (PAYG pack or monthly plan)
+  if (user && typeof user.credits === 'number' && (user.plan !== 'free' || user.isPro)) {
     return {
       used: 0,
-      remaining: MAX_FREE_DAILY,
-      total: MAX_FREE_DAILY,
-      isLimitReached: false,
+      remaining: user.credits,
+      total: Math.max(user.credits, MAX_FREE_DAILY),
+      isLimitReached: user.credits <= 0,
       date: today,
     };
   }
+
+  const used = getDeviceFreeCreditsUsedToday();
+  const remaining = Math.max(0, MAX_FREE_DAILY - used);
+
+  return {
+    used,
+    remaining,
+    total: MAX_FREE_DAILY,
+    isLimitReached: remaining <= 0,
+    date: today,
+  };
 }
 
 export function incrementDailyLimit(): {
@@ -99,8 +161,8 @@ export function incrementDailyLimit(): {
   remaining: number;
   isLimitReached: boolean;
 } {
-  const user = getCurrentUser();
-  if (user && user.isPro) {
+  const user = getStoredUserFast();
+  if (user && user.isPro && user.plan === 'unlimited') {
     return {
       used: 0,
       remaining: 9999,
@@ -108,26 +170,10 @@ export function incrementDailyLimit(): {
     };
   }
 
-  const today = getTodayString();
-  const current = getDailyLimitStatus();
-  const storageKey = getStorageKeyForCurrentSubject();
-  
-  const newCount = current.used + 1;
-  const data: DailyLimitData = {
-    date: today,
-    count: newCount,
-    maxLimit: MAX_FREE_DAILY,
-  };
-
-  try {
-    localStorage.setItem(storageKey, JSON.stringify(data));
-  } catch (err) {
-    console.warn('Could not save to localStorage:', err);
-  }
-
+  const newUsed = recordDeviceFreeCreditUsed();
   return {
-    used: newCount,
-    remaining: Math.max(0, MAX_FREE_DAILY - newCount),
-    isLimitReached: newCount >= MAX_FREE_DAILY,
+    used: newUsed,
+    remaining: Math.max(0, MAX_FREE_DAILY - newUsed),
+    isLimitReached: newUsed >= MAX_FREE_DAILY,
   };
 }

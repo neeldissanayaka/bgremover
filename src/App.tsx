@@ -15,7 +15,7 @@ import { PricingModal } from './components/PricingModal';
 import { LegalModal, LegalModalType } from './components/LegalModal';
 import { SAMPLE_IMAGES } from './data/samples';
 import { ProcessedImage, SampleImage, UserProfile } from './types';
-import { getDailyLimitStatus, incrementDailyLimit } from './utils/dailyLimit';
+import { getDailyLimitStatus, incrementDailyLimit, syncDeviceDailyUsed, recordDeviceFreeCreditUsed } from './utils/dailyLimit';
 import { getCurrentUser, logoutUser, subscribeToAuthChanges, saveCurrentUser, deductUserCredit } from './utils/auth';
 import { supabase, isSupabaseConfigured } from './utils/supabase';
 import { processBackgroundRemoval } from './utils/imageProcessing';
@@ -46,25 +46,21 @@ export default function App() {
   const [legalModalTab, setLegalModalTab] = useState<LegalModalType>('privacy');
 
   const refreshQuota = useCallback(async () => {
-    // Signed-in users use their database-backed profile. Guests always read
-    // the authoritative quota from the server; localStorage is display-only.
-    if (!getCurrentUser()) {
-      try {
-        const response = await fetch('/api/guest-credit', { method: 'GET', cache: 'no-store' });
-        if (response.ok) {
-          const quota = await response.json();
-          setDailyQuota({
-            used: Number(quota.used || 0),
-            remaining: Number(quota.remaining || 0),
-            total: Number(quota.total || 3),
-            isLimitReached: Number(quota.remaining || 0) <= 0,
-            date: new Date().toISOString().slice(0, 10),
-          });
-          return;
+    try {
+      const response = await fetch('/api/guest-credit', { method: 'GET', cache: 'no-store' });
+      if (response.ok) {
+        const quota = await response.json();
+        if (typeof quota.used === 'number') {
+          syncDeviceDailyUsed(Number(quota.used));
         }
-      } catch (error) {
-        console.warn('[Guest Quota Status Error]', error);
       }
+    } catch (error) {
+      console.warn('[Guest Quota Status Error]', error);
+    }
+
+    const currentUsr = getCurrentUser();
+    if (currentUsr) {
+      setCurrentUser(currentUsr);
     }
     setDailyQuota(getDailyLimitStatus());
   }, []);
@@ -197,6 +193,7 @@ export default function App() {
       try {
         const { user: updatedUser } = await deductUserCredit(currentUser);
         setCurrentUser(updatedUser);
+        setDailyQuota(getDailyLimitStatus());
         return true;
       } catch (err) {
         console.error('[Credit Deduction Error]', err);
@@ -211,6 +208,7 @@ export default function App() {
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
         if (response.status === 429 || body?.allowed === false) {
+          recordDeviceFreeCreditUsed();
           setDailyQuota({ used: 3, remaining: 0, total: 3, isLimitReached: true, date: new Date().toISOString().slice(0,10) });
           openPricingModal("You've used all 3 free credits for today. Sign in, buy credits, or upgrade to continue.");
           setIsLimitModalOpen(true);
@@ -221,8 +219,11 @@ export default function App() {
         return false;
       }
       const quota = await response.json();
-      // Keep local state only as a display cache; it is never trusted for authorization.
-      setDailyQuota({ used: quota.used, remaining: quota.remaining, total: quota.total, isLimitReached: quota.remaining <= 0, date: new Date().toISOString().slice(0,10) });
+      recordDeviceFreeCreditUsed();
+      if (typeof quota.used === 'number') {
+        syncDeviceDailyUsed(quota.used);
+      }
+      setDailyQuota(getDailyLimitStatus());
       return true;
     } catch (err) {
       console.error('[Guest Quota Error]', err);

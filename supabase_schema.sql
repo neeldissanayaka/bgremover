@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   name TEXT,
   avatar_url TEXT,
   plan TEXT DEFAULT 'free',
-  credits INTEGER DEFAULT 5,
-  daily_free_credits INTEGER DEFAULT 5,
+  credits INTEGER DEFAULT 3,
+  daily_free_credits INTEGER DEFAULT 3,
   paid_credits INTEGER DEFAULT 0,
   plan_credits INTEGER DEFAULT 0,
   pro_expires_at TIMESTAMPTZ,
@@ -118,8 +118,8 @@ BEGIN
     v_user_name,
     v_user_avatar,
     'free',
-    5,
-    5,
+    3,
+    3,
     0,
     0,
     FALSE,
@@ -180,8 +180,8 @@ SELECT
     'https://api.dicebear.com/7.x/avataaars/svg?seed=' || u.id::text
   ),
   'free',
-  5,
-  5,
+  3,
+  3,
   0,
   0,
   FALSE,
@@ -235,13 +235,13 @@ BEGIN
     );
   END IF;
 
-  v_daily := COALESCE(v_profile.daily_free_credits, 5);
+  v_daily := COALESCE(v_profile.daily_free_credits, 3);
   v_plan_cr := COALESCE(v_profile.plan_credits, 0);
   v_paid := COALESCE(v_profile.paid_credits, 0);
 
   -- Check if midnight reset is required
   IF v_profile.last_reset_date IS NULL OR v_profile.last_reset_date < v_today THEN
-    v_daily := 5;
+    v_daily := 3;
   END IF;
 
   -- Check subscription expiration status
@@ -312,3 +312,19 @@ CREATE POLICY "Users can insert own image history"
   ON public.image_history
   FOR INSERT
   WITH CHECK (auth.uid() = user_id);
+
+-- ============================================================================
+-- 9. Migration: Update existing free profiles & column defaults to 3 credits
+-- ============================================================================
+ALTER TABLE public.profiles
+  ALTER COLUMN credits SET DEFAULT 3,
+  ALTER COLUMN daily_free_credits SET DEFAULT 3;
+
+-- Normalize existing free tier accounts that had 5 credits
+UPDATE public.profiles
+SET credits = 3,
+    daily_free_credits = 3
+WHERE plan = 'free'
+  AND is_pro = FALSE
+  AND (credits > 3 OR daily_free_credits > 3);
+
