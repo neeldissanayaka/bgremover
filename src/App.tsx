@@ -277,7 +277,8 @@ export default function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
       console.error('Failed to remove background:', err);
-      alert('Failed to remove image background. Please try another image.');
+      const userMessage = err?.message || 'Failed to remove image background. Please try another image.';
+      alert(userMessage);
     } finally {
       setIsProcessing(false);
     }

@@ -16,6 +16,11 @@ export const MAX_FILE_SIZE_BYTES = IMAGE_SECURITY_LIMITS.MAX_FILE_SIZE_BYTES; //
 export const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
 export const MAX_PRE_RESIZE_WIDTH = 2048;
 
+export const IMGLY_CDN_PATH =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_IMGLY_PUBLIC_PATH
+    ? String(import.meta.env.VITE_IMGLY_PUBLIC_PATH).trim()
+    : '') || 'https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/';
+
 let preloadPromise: Promise<void> | null = null;
 
 /**
@@ -47,10 +52,11 @@ export function warmupAIModel(): Promise<void> {
         const primaryDevice: 'gpu' | 'cpu' = hasWebGpu ? 'gpu' : 'cpu';
 
         await preload({
+          publicPath: IMGLY_CDN_PATH,
           debug: false,
           device: primaryDevice,
           model: 'isnet_quint8',
-          proxyToWorker: true,
+          proxyToWorker: false,
           output: {
             format: 'image/png',
             quality: 0.85,
@@ -302,64 +308,117 @@ export async function processBackgroundRemoval(
     }
   }
 
-  // Ultra-Fast client-side AI removal using WebGPU hardware acceleration + SIMD WASM fallback
+  // Resilient multi-tier client-side AI removal:
+  // Tier 1: WebGPU GPU acceleration (if supported)
+  // Tier 2: CPU SIMD WASM with isnet_quint8 (direct thread, avoiding worker issues)
+  // Tier 3: CPU SIMD WASM with isnet_fp16 fallback model
+  // Tier 4: Web Worker proxy fallback
   try {
     const hasWebGpu = await checkWebGPUSupport();
     const primaryDevice: 'gpu' | 'cpu' = hasWebGpu ? 'gpu' : 'cpu';
 
     onProgress?.(
-      55,
+      50,
       hasWebGpu
         ? '⚡ Turbo WebGPU AI: Isolating subject...'
         : '⚡ High-Speed SIMD AI: Isolating subject...'
     );
 
-    const baseConfig = {
-      debug: false,
-      model: 'isnet_quint8' as const, // 44MB, 3x faster integer SIMD execution, pristine edge quality
-      proxyToWorker: true,
-      output: {
-        format: 'image/png' as const,
-        quality: 0.85,
-      },
-      progress: (key: string, current: number, total: number) => {
-        if (total > 0) {
-          const pct = Math.min(95, Math.round(55 + (current / total) * 40));
-          onProgress?.(pct, `Analyzing subject edges: ${key}...`);
-        }
-      },
+    const makeProgressHandler = (stageName: string) => (key: string, current: number, total: number) => {
+      if (total > 0) {
+        const pct = Math.min(95, Math.round(50 + (current / total) * 45));
+        onProgress?.(pct, `${stageName}: ${key || 'analyzing'}...`);
+      }
     };
 
     let resultBlob: Blob | null = null;
+    let lastError: any = null;
 
-    // 1. Try WebGPU GPU acceleration first
+    // 1. Try WebGPU GPU acceleration first (if device supports WebGPU)
     if (primaryDevice === 'gpu') {
       try {
         resultBlob = await removeBackground(resized.blob, {
-          ...baseConfig,
+          publicPath: IMGLY_CDN_PATH,
+          debug: false,
           device: 'gpu',
+          model: 'isnet_quint8',
+          proxyToWorker: false,
+          output: { format: 'image/png', quality: 0.85 },
+          progress: makeProgressHandler('WebGPU AI Edge Processing'),
         });
       } catch (gpuErr) {
-        console.warn('[AI Engine] WebGPU runtime fallback to CPU SIMD:', gpuErr);
-        onProgress?.(65, 'WebGPU busy, switching to high-speed CPU SIMD...');
+        console.warn('[AI Engine] WebGPU runtime fallback to CPU SIMD WASM:', gpuErr);
+        lastError = gpuErr;
+        onProgress?.(55, 'WebGPU unavailable, switching to high-speed CPU SIMD...');
         resultBlob = null;
       }
     }
 
-    // 2. Fallback to CPU SIMD WASM if GPU is unavailable or failed
+    // 2. Fallback to CPU SIMD WASM with isnet_quint8 (direct main thread, max cross-browser compatibility)
     if (!resultBlob) {
-      resultBlob = await removeBackground(resized.blob, {
-        ...baseConfig,
-        device: 'cpu',
-      });
+      try {
+        resultBlob = await removeBackground(resized.blob, {
+          publicPath: IMGLY_CDN_PATH,
+          debug: false,
+          device: 'cpu',
+          model: 'isnet_quint8',
+          proxyToWorker: false,
+          output: { format: 'image/png', quality: 0.85 },
+          progress: makeProgressHandler('High-Speed SIMD Processing'),
+        });
+      } catch (cpuErr) {
+        console.warn('[AI Engine] CPU SIMD isnet_quint8 attempt notice:', cpuErr);
+        lastError = cpuErr;
+        resultBlob = null;
+      }
+    }
+
+    // 3. Fallback to isnet_fp16 model if quint8 had chunk/quantization issues
+    if (!resultBlob) {
+      try {
+        onProgress?.(60, 'Loading precision AI model fallback...');
+        resultBlob = await removeBackground(resized.blob, {
+          publicPath: IMGLY_CDN_PATH,
+          debug: false,
+          device: 'cpu',
+          model: 'isnet_fp16',
+          proxyToWorker: false,
+          output: { format: 'image/png', quality: 0.85 },
+          progress: makeProgressHandler('Precision AI Processing'),
+        });
+      } catch (fp16Err) {
+        console.warn('[AI Engine] isnet_fp16 attempt notice:', fp16Err);
+        lastError = fp16Err;
+        resultBlob = null;
+      }
+    }
+
+    // 4. Fallback to Web Worker proxy if direct execution was restricted
+    if (!resultBlob) {
+      try {
+        onProgress?.(65, 'Running background worker inference...');
+        resultBlob = await removeBackground(resized.blob, {
+          publicPath: IMGLY_CDN_PATH,
+          debug: false,
+          device: 'cpu',
+          model: 'isnet_quint8',
+          proxyToWorker: true,
+          output: { format: 'image/png', quality: 0.85 },
+          progress: makeProgressHandler('Worker Processing'),
+        });
+      } catch (workerErr) {
+        console.warn('[AI Engine] Web worker attempt notice:', workerErr);
+        lastError = workerErr;
+        resultBlob = null;
+      }
     }
 
     if (!resultBlob || !resultBlob.size) {
-      throw new Error('AI engine returned an empty result.');
+      throw lastError || new Error('AI engine returned an empty result.');
     }
 
     const durationSec = ((performance.now() - startTime) / 1000).toFixed(1);
-    console.log(`[AI Engine] Background removed in ${durationSec}s (${primaryDevice.toUpperCase()} mode)`);
+    console.log(`[AI Engine] Background removed in ${durationSec}s`);
     onProgress?.(100, `Finished in ${durationSec}s!`);
 
     return {
@@ -367,11 +426,20 @@ export async function processBackgroundRemoval(
       width: resized.width,
       height: resized.height,
     };
-  } catch (clientErr) {
+  } catch (clientErr: any) {
     console.error('Background removal AI failed:', clientErr);
-    throw new Error(
-      'Background removal AI could not load. Please check the network connection and try again.'
-    );
+    const msg = String(clientErr?.message || clientErr || '');
+    if (msg.includes('fetch') || msg.includes('network') || msg.includes('NetworkError') || msg.includes('Failed to fetch')) {
+      throw new Error(
+        'Could not download the AI background removal neural network. Please check your internet connection or disable adblockers and try again.'
+      );
+    }
+    if (msg.includes('Content Security Policy') || msg.includes('CSP') || msg.includes('wasm')) {
+      throw new Error(
+        'Browser security blocked WebAssembly execution. Please verify your hosting Content-Security-Policy allows wasm-unsafe-eval.'
+      );
+    }
+    throw new Error(msg || 'AI model could not process this image. Please try another photo.');
   }
 }
 
