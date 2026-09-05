@@ -119,7 +119,7 @@ export function calculateTotalCredits(user: {
   if (user.isPro && user.plan === 'unlimited') {
     return 9999;
   }
-  const daily = typeof user.dailyFreeCredits === 'number' ? user.dailyFreeCredits : 5;
+  const daily = typeof user.dailyFreeCredits === 'number' ? user.dailyFreeCredits : 3;
   const plan = typeof user.planCredits === 'number' ? user.planCredits : 0;
   const paid = typeof user.paidCredits === 'number' ? user.paidCredits : 0;
   return daily + plan + paid;
@@ -137,7 +137,7 @@ export function getCurrentUser(): UserProfile | null {
 
     // 1. Ensure Multi-Pool Default Fields Exist
     if (typeof user.dailyFreeCredits !== 'number') {
-      user.dailyFreeCredits = 5;
+      user.dailyFreeCredits = 3;
       hasMutated = true;
     }
     if (typeof user.paidCredits !== 'number') {
@@ -155,7 +155,7 @@ export function getCurrentUser(): UserProfile | null {
 
     // 2. Midnight Daily Quota Reset (for ALL account types: Free, Lite, Pro, Unlimited, PAYG)
     if (user.lastResetDate !== today) {
-      user.dailyFreeCredits = 5;
+      user.dailyFreeCredits = 3;
       user.lastResetDate = today;
       hasMutated = true;
     }
@@ -210,7 +210,7 @@ export function saveCurrentUser(user: UserProfile | null): void {
   try {
     if (user) {
       const today = getTodayDateString();
-      const dailyFree = typeof user.dailyFreeCredits === 'number' ? user.dailyFreeCredits : 5;
+      const dailyFree = typeof user.dailyFreeCredits === 'number' ? user.dailyFreeCredits : 3;
       const paid = typeof user.paidCredits === 'number' ? user.paidCredits : 0;
       const planCr = typeof user.planCredits === 'number' ? user.planCredits : 0;
       const totalCredits = calculateTotalCredits(user);
@@ -361,7 +361,7 @@ export async function signInWithGoogle(options: GoogleAuthOptions = { prompt: 's
 
               let userId = 'usr_g_' + (googleData.sub || Math.random().toString(36).substring(2, 9));
               let plan: PlanType = 'free';
-              let dailyFreeCredits = 5;
+              let dailyFreeCredits = 3;
               let paidCredits = 0;
               let planCredits = 0;
               let isPro = false;
@@ -374,7 +374,7 @@ export async function signInWithGoogle(options: GoogleAuthOptions = { prompt: 's
                   const dbProfile = await fetchProfileFromSupabase(userId);
                   if (dbProfile) {
                     plan = (dbProfile.plan as PlanType) || 'free';
-                    dailyFreeCredits = typeof dbProfile.daily_free_credits === 'number' ? dbProfile.daily_free_credits : 5;
+                    dailyFreeCredits = typeof dbProfile.daily_free_credits === 'number' ? dbProfile.daily_free_credits : 3;
                     paidCredits = typeof dbProfile.paid_credits === 'number' ? dbProfile.paid_credits : 0;
                     planCredits = typeof dbProfile.plan_credits === 'number' ? dbProfile.plan_credits : 0;
                     isPro = typeof dbProfile.is_pro === 'boolean' ? dbProfile.is_pro : plan !== 'free';
@@ -390,7 +390,7 @@ export async function signInWithGoogle(options: GoogleAuthOptions = { prompt: 's
                 if (existingAccount) {
                   userId = existingAccount.id;
                   plan = existingAccount.plan;
-                  dailyFreeCredits = typeof existingAccount.dailyFreeCredits === 'number' ? existingAccount.dailyFreeCredits : 5;
+                  dailyFreeCredits = typeof existingAccount.dailyFreeCredits === 'number' ? existingAccount.dailyFreeCredits : 3;
                   paidCredits = typeof existingAccount.paidCredits === 'number' ? existingAccount.paidCredits : 0;
                   planCredits = typeof existingAccount.planCredits === 'number' ? existingAccount.planCredits : 0;
                   isPro = existingAccount.isPro;
@@ -538,7 +538,7 @@ function fallbackDirectOAuthPopup(
             avatar: data.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(email)}`,
             plan: 'free',
             credits: 5,
-            dailyFreeCredits: 5,
+            dailyFreeCredits: 3,
             paidCredits: 0,
             planCredits: 0,
             isPro: false,
@@ -618,7 +618,7 @@ export async function signUpWithEmail(
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(normalizedEmail)}`,
       plan: 'free',
       credits: 5,
-      dailyFreeCredits: 5,
+      dailyFreeCredits: 3,
       paidCredits: 0,
       planCredits: 0,
       isPro: false,
@@ -658,7 +658,7 @@ export async function signUpWithEmail(
     avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(normalizedEmail)}`,
     plan: 'free',
     credits: 5,
-    dailyFreeCredits: 5,
+    dailyFreeCredits: 3,
     paidCredits: 0,
     planCredits: 0,
     isPro: false,
@@ -678,7 +678,7 @@ export async function signUpWithEmail(
     avatar: newAccount.avatar,
     plan: 'free',
     credits: 5,
-    dailyFreeCredits: 5,
+    dailyFreeCredits: 3,
     paidCredits: 0,
     planCredits: 0,
     isPro: false,
@@ -796,7 +796,7 @@ export async function signInWithEmail(
     avatar: existingAccount.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(normalizedEmail)}`,
     plan: existingAccount.plan,
     credits: existingAccount.credits,
-    dailyFreeCredits: typeof existingAccount.dailyFreeCredits === 'number' ? existingAccount.dailyFreeCredits : 5,
+    dailyFreeCredits: typeof existingAccount.dailyFreeCredits === 'number' ? existingAccount.dailyFreeCredits : 3,
     paidCredits: typeof existingAccount.paidCredits === 'number' ? existingAccount.paidCredits : 0,
     planCredits: typeof existingAccount.planCredits === 'number' ? existingAccount.planCredits : 0,
     isPro: existingAccount.isPro,
@@ -889,7 +889,7 @@ export function upgradeUserPlan(
     const email = 'customer@bgremover.art';
     const planCredits = plan === 'lite' ? 40 : plan === 'pro' ? 200 : plan === 'unlimited' ? 9999 : 0;
     const paidCredits = plan === 'payg' ? (creditsToAdd || 10) : 0;
-    const dailyFreeCredits = 5;
+    const dailyFreeCredits = 3;
 
     user = {
       id: newId,
@@ -910,7 +910,7 @@ export function upgradeUserPlan(
     };
   } else {
     // Preserve existing pools
-    let updatedDaily = typeof user.dailyFreeCredits === 'number' ? user.dailyFreeCredits : 5;
+    let updatedDaily = typeof user.dailyFreeCredits === 'number' ? user.dailyFreeCredits : 3;
     let updatedPaid = typeof user.paidCredits === 'number' ? user.paidCredits : 0;
     let updatedPlanCredits = typeof user.planCredits === 'number' ? user.planCredits : 0;
     let updatedPlan = user.plan;
@@ -988,86 +988,30 @@ export function upgradeUserToPro(
  * Throws an error if insufficient credits or database error.
  */
 export async function deductUserCredit(user: UserProfile): Promise<{ user: UserProfile; updatedCredits: number }> {
-  // Unlimited Pass Check: full bypass
-  if (user.isPro && user.plan === 'unlimited') {
-    const isNotExpired = !user.proExpiresAt || new Date(user.proExpiresAt).getTime() > Date.now();
-    if (isNotExpired) {
-      return { user, updatedCredits: 9999 };
-    }
+  if (!supabase || !isSupabaseConfigured()) {
+    throw new Error('Secure server credit enforcement is unavailable.');
   }
 
-  const today = getTodayDateString();
-  let dailyFree = typeof user.dailyFreeCredits === 'number' ? user.dailyFreeCredits : 5;
-  let planCr = typeof user.planCredits === 'number' ? user.planCredits : 0;
-  let paidCr = typeof user.paidCredits === 'number' ? user.paidCredits : 0;
+  // The RPC verifies auth.uid() server-side. Do not trust browser balances.
+  const { data, error } = await supabase.rpc('deduct_credit', { user_id: user.id });
+  if (error) throw new Error(error.message || 'Insufficient credits');
+  if (!data || typeof data !== 'object') throw new Error('Invalid credit response');
 
-  // Auto-reset daily quota if midnight passed
-  if (user.lastResetDate !== today) {
-    dailyFree = 5;
-    user.lastResetDate = today;
-  }
-
-  // Check subscription expiration
-  const isSubActive = user.isPro && user.proExpiresAt && new Date(user.proExpiresAt).getTime() > Date.now();
-  if (!isSubActive && user.proExpiresAt) {
-    planCr = 0;
-  }
-
-  // Priority deduction execution
-  if (dailyFree > 0) {
-    // Priority 1: Daily Free Credits
-    dailyFree -= 1;
-  } else if (isSubActive && planCr > 0) {
-    // Priority 2: Subscription Monthly Plan Credits
-    planCr -= 1;
-  } else if (paidCr > 0) {
-    // Priority 3: Non-expiring Paid Credits (PAYG)
-    paidCr -= 1;
-  } else {
-    // Execution Blocking: ALL pools are 0
-    throw new Error('Insufficient credits');
-  }
-
-  const updatedTotal = calculateTotalCredits({
-    dailyFreeCredits: dailyFree,
-    planCredits: planCr,
-    paidCredits: paidCr,
-    isPro: user.isPro,
-    plan: user.plan,
-  });
-
-  // If Supabase is connected, call RPC
-  if (supabase && isSupabaseConfigured()) {
-    try {
-      const { data, error } = await supabase.rpc('deduct_credit', {
-        user_id: user.id,
-      });
-
-      if (error) {
-        throw new Error(error.message || 'Insufficient credits');
-      }
-
-      if (data && typeof data === 'object') {
-        if (typeof data.daily_free_credits === 'number') dailyFree = data.daily_free_credits;
-        if (typeof data.plan_credits === 'number') planCr = data.plan_credits;
-        if (typeof data.paid_credits === 'number') paidCr = data.paid_credits;
-      }
-    } catch (rpcErr: any) {
-      console.warn('[Supabase RPC Warning]:', rpcErr?.message);
-    }
-  }
+  const dailyFreeCredits = Number(data.daily_free_credits ?? 0);
+  const planCredits = Number(data.plan_credits ?? 0);
+  const paidCredits = Number(data.paid_credits ?? 0);
+  const updatedCredits = Number(data.credits ?? dailyFreeCredits + planCredits + paidCredits);
 
   const updatedProfile: UserProfile = {
     ...user,
-    dailyFreeCredits: dailyFree,
-    planCredits: planCr,
-    paidCredits: paidCr,
-    credits: updatedTotal,
-    lastResetDate: today,
+    dailyFreeCredits,
+    planCredits,
+    paidCredits,
+    credits: updatedCredits,
+    lastResetDate: getTodayDateString(),
   };
-
   saveCurrentUser(updatedProfile);
-  return { user: updatedProfile, updatedCredits: updatedTotal };
+  return { user: updatedProfile, updatedCredits };
 }
 
 // Subscribe to auth state changes across the application (Supabase + Local event)

@@ -59,7 +59,7 @@ export interface UserProfile {
   avatar?: string;
   plan: PlanType;
   credits: number; // Computed / total active credits (daily + plan + paid)
-  dailyFreeCredits: number; // Defaults to 5 for ALL users (resets every midnight)
+  dailyFreeCredits: number; // Defaults to 3 for ALL users (resets every midnight)
   paidCredits: number; // Non-expiring purchased credits (PAYG packs: 3, 10, 50)
   planCredits: number; // Monthly quota credits tied to active subscriptions (Lite: 40, Pro: 200)
   proExpiresAt?: string | null; // ISO timestamp

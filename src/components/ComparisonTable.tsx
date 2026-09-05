@@ -5,7 +5,7 @@ export const ComparisonTable: React.FC = () => {
   const comparisonRows = [
     {
       feature: 'Pricing & Cost',
-      bgremover: '100% Free (5 free/day)',
+      bgremover: '100% Free (3 free/day)',
       removeBg: '$0.20 to $1.99 per image',
       canva: '$12.99 / month Pro subscription',
     },

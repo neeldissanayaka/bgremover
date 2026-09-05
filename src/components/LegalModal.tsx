@@ -223,7 +223,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                     <strong className="text-white">Account Information (Optional):</strong> When you create an account via Google Sign-In or email/password, we store your email address, name, and profile avatar to maintain your credits balance and subscription plan.
                   </li>
                   <li>
-                    <strong className="text-white">Local Browser Storage:</strong> We use your browser's <code className="text-cyan-300 bg-white/[0.06] px-1 py-0.5 rounded text-xs">localStorage</code> to track free daily quota counters (5 free removals/day) and editor preferences without cross-site tracking or tracking cookies.
+                    <strong className="text-white">Local Browser Storage:</strong> We use your browser's <code className="text-cyan-300 bg-white/[0.06] px-1 py-0.5 rounded text-xs">localStorage</code> to track free daily quota counters (3 free removals/day) and editor preferences without cross-site tracking or tracking cookies.
                   </li>
                   <li>
                     <strong className="text-white">Payment & Billing Records:</strong> All payment transactions are processed exclusively through our Merchant of Record (<strong className="text-white">Lemon Squeezy</strong>), which adheres to PCI-DSS Level 1 security standards. We never store raw credit card numbers or banking secrets on our servers.
@@ -367,7 +367,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10">
                       <p className="font-bold text-white text-xs">Free Daily Quota</p>
-                      <p className="text-slate-400 text-xs mt-0.5">5 free high-quality removals every 24 hours with zero watermarks.</p>
+                      <p className="text-slate-400 text-xs mt-0.5">3 free high-quality removals every 24 hours with zero watermarks.</p>
                     </div>
                     <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10">
                       <p className="font-bold text-white text-xs">Pay-As-You-Go Packs</p>

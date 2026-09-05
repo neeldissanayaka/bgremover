@@ -1,6 +1,6 @@
 # bgremover.art — Production Deployment, Security Hardening & High-Scale (10,000+ Users) Guide
 
-Welcome to **bgremover.art**, an ultra-fast, automatic AI background removal utility web application featuring client-side canvas editing, before/after comparison sliders, passport photo presets, a daily free quota engine (5 free removals/24h), production Google OAuth 2.0 authentication (`prompt: 'select_account'`), and a 4-tier Lemon Squeezy monetization system.
+Welcome to **bgremover.art**, an ultra-fast, automatic AI background removal utility web application featuring client-side canvas editing, before/after comparison sliders, passport photo presets, a daily free quota engine (3 free removals/24h), production Google OAuth 2.0 authentication (`prompt: 'select_account'`), and a 4-tier Lemon Squeezy monetization system.
 
 ---
 

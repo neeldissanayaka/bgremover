@@ -11,7 +11,7 @@ export const FAQSection: React.FC = () => {
     },
     {
       q: 'How does the daily limit system work?',
-      a: 'To guarantee lightning-fast response times and prevent server overload, each unique visitor receives 5 free high-definition AI removals every 24 hours. The quota resets automatically at midnight.',
+      a: 'To guarantee lightning-fast response times and prevent server overload, each unique visitor receives 3 free high-definition AI removals every 24 hours. The quota resets automatically at midnight.',
     },
     {
       q: 'Can I change my background to white or passport photo blue?',

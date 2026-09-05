@@ -45,12 +45,32 @@ export default function App() {
   const [isLegalModalOpen, setIsLegalModalOpen] = useState<boolean>(false);
   const [legalModalTab, setLegalModalTab] = useState<LegalModalType>('privacy');
 
-  const refreshQuota = useCallback(() => {
+  const refreshQuota = useCallback(async () => {
+    // Signed-in users use their database-backed profile. Guests always read
+    // the authoritative quota from the server; localStorage is display-only.
+    if (!getCurrentUser()) {
+      try {
+        const response = await fetch('/api/guest-credit', { method: 'GET', cache: 'no-store' });
+        if (response.ok) {
+          const quota = await response.json();
+          setDailyQuota({
+            used: Number(quota.used || 0),
+            remaining: Number(quota.remaining || 0),
+            total: Number(quota.total || 3),
+            isLimitReached: Number(quota.remaining || 0) <= 0,
+            date: new Date().toISOString().slice(0, 10),
+          });
+          return;
+        }
+      } catch (error) {
+        console.warn('[Guest Quota Status Error]', error);
+      }
+    }
     setDailyQuota(getDailyLimitStatus());
   }, []);
 
   useEffect(() => {
-    refreshQuota();
+    void refreshQuota();
     const unsubscribe = subscribeToAuthChanges((user) => {
       setCurrentUser(user);
     });
@@ -170,52 +190,46 @@ export default function App() {
     cleanUrlPath();
   };
 
-  // Atomic credit deduction and quota verification execution guard
+  // Credit enforcement for signed-in users is server/database authoritative.
+  // Never trust isPro, plan or credit values stored in the browser.
   const checkAndDeductCredit = async (): Promise<boolean> => {
-    // 1. Pro Unlimited Subscribers: full bypass, zero credits consumed if not expired
-    if (currentUser?.isPro && currentUser.plan === 'unlimited') {
-      const isNotExpired = !currentUser.proExpiresAt || new Date(currentUser.proExpiresAt).getTime() > Date.now();
-      if (isNotExpired) {
-        return true;
-      }
-    }
-
-    // 2. Authenticated User with Account (Free, PAYG, Lite, Pro, Unlimited)
     if (currentUser) {
-      // Calculate available credits across daily, plan, and paid pools
-      const totalAvailable =
-        (currentUser.dailyFreeCredits ?? 0) +
-        (currentUser.isPro && currentUser.planCredits ? currentUser.planCredits : 0) +
-        (currentUser.paidCredits ?? 0);
-
-      // Strictly enforce: If all credit balances are 0 and no active unlimited pass exists
-      if (totalAvailable <= 0 && currentUser.credits <= 0) {
-        openPricingModal("You've used all your credits. Buy more credits or upgrade to Pro to continue.");
-        return false;
-      }
-
       try {
         const { user: updatedUser } = await deductUserCredit(currentUser);
         setCurrentUser(updatedUser);
         return true;
-      } catch (err: any) {
-        console.error('[Credit Deduction Error]:', err);
-        openPricingModal("You've used all your credits. Buy more credits or upgrade to Pro to continue.");
+      } catch (err) {
+        console.error('[Credit Deduction Error]', err);
+        openPricingModal("You've used all your credits. Buy more credits or upgrade to continue.");
         return false;
       }
     }
 
-    // 3. Guest / Anonymous users: Free Daily Quota (5 free per day)
-    const currentQuota = getDailyLimitStatus();
-    if (currentQuota.isLimitReached || currentQuota.remaining <= 0) {
-      openPricingModal("You've used all your credits. Buy more credits or upgrade to Pro to continue.");
-      setIsLimitModalOpen(true);
+    // Guest quota is enforced by a serverless API + database. localStorage is UI-only.
+    try {
+      const response = await fetch('/api/guest-credit', { method: 'POST' });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        if (response.status === 429 || body?.allowed === false) {
+          setDailyQuota({ used: 3, remaining: 0, total: 3, isLimitReached: true, date: new Date().toISOString().slice(0,10) });
+          openPricingModal("You've used all 3 free credits for today. Sign in, buy credits, or upgrade to continue.");
+          setIsLimitModalOpen(true);
+        } else {
+          console.error('[Guest Quota API Error]', body);
+          openPricingModal(body?.error || 'Usage verification is temporarily unavailable. Please try again.');
+        }
+        return false;
+      }
+      const quota = await response.json();
+      // Keep local state only as a display cache; it is never trusted for authorization.
+      setDailyQuota({ used: quota.used, remaining: quota.remaining, total: quota.total, isLimitReached: quota.remaining <= 0, date: new Date().toISOString().slice(0,10) });
+      return true;
+    } catch (err) {
+      console.error('[Guest Quota Error]', err);
+      // Fail closed: quota-service failure must not grant free processing.
+      openPricingModal('Usage verification is temporarily unavailable. Please try again.');
       return false;
     }
-
-    incrementDailyLimit();
-    refreshQuota();
-    return true;
   };
 
   // Handle uploaded file

@@ -33,11 +33,11 @@ export const DailyLimitModal: React.FC<DailyLimitModalProps> = ({
         </div>
 
         <span className="inline-block px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-black uppercase tracking-wider mb-2">
-          Daily Quota Reached (5/5)
+          Daily Quota Reached (3/3)
         </span>
 
         <h3 className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 mb-2">
-          You've used all 5 free daily removals
+          You've used all 3 free daily removals
         </h3>
 
         <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mb-5">

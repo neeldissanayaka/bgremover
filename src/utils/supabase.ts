@@ -106,7 +106,7 @@ export function mapSupabaseToUserProfile(
   const lastResetDate = profile?.last_reset_date || getTodayString();
 
   // Multi-Pool credit balances
-  const dailyFreeCredits = typeof profile?.daily_free_credits === 'number' ? profile.daily_free_credits : 5;
+  const dailyFreeCredits = typeof profile?.daily_free_credits === 'number' ? profile.daily_free_credits : 3;
   const paidCredits = typeof profile?.paid_credits === 'number' ? profile.paid_credits : 0;
   const planCredits = typeof profile?.plan_credits === 'number' ? profile.plan_credits : 0;
 
@@ -141,33 +141,22 @@ export function mapSupabaseToUserProfile(
 export async function syncProfileToSupabase(user: UserProfile): Promise<void> {
   if (!supabase || !isSupabaseConfigured()) return;
 
-  try {
-    const payload: SupabaseProfileRow = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      avatar_url: user.avatar,
-      plan: user.plan,
-      credits: user.credits,
-      daily_free_credits: user.dailyFreeCredits ?? 5,
-      paid_credits: user.paidCredits ?? 0,
-      plan_credits: user.planCredits ?? 0,
-      pro_expires_at: user.proExpiresAt || null,
-      last_reset_date: user.lastResetDate || getTodayString(),
-      is_pro: user.isPro,
-      updated_at: new Date().toISOString(),
-    };
+  // Never send authorization, subscription, or credit fields from the browser.
+  // Those values are created by the auth trigger/webhook and changed only by
+  // trusted server/database functions.
+  const payload = {
+    id: user.id,
+    name: user.name,
+    avatar_url: user.avatar,
+    updated_at: new Date().toISOString(),
+  };
 
-    const { error } = await supabase
-      .from('profiles')
-      .upsert(payload, { onConflict: 'id' });
+  const { error } = await supabase
+    .from('profiles')
+    .update(payload)
+    .eq('id', user.id);
 
-    if (error) {
-      console.warn('[Supabase] Warning syncing profile to database table:', error.message);
-    }
-  } catch (err) {
-    console.warn('[Supabase] Profile sync exception:', err);
-  }
+  if (error) throw new Error(`Profile update failed: ${error.message}`);
 }
 
 /**

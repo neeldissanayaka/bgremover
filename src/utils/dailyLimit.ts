@@ -3,7 +3,7 @@ import { getCurrentUser } from './auth';
 
 const GUEST_STORAGE_KEY = 'bgremover_daily_limit_v1';
 const USER_QUOTA_PREFIX = 'bgremover_user_quota_';
-const MAX_FREE_DAILY = 5;
+const MAX_FREE_DAILY = 3;
 
 function getTodayString(): string {
   const now = new Date();
@@ -58,7 +58,7 @@ export function getDailyLimitStatus(overrideUserId?: string): {
 
     const data: DailyLimitData = JSON.parse(raw);
     if (data.date !== today) {
-      // New day, auto-reset counter to 5 free per 24 hours
+      // New day, auto-reset counter to 3 free per 24 hours
       const freshData: DailyLimitData = {
         date: today,
         count: 0,

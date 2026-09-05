@@ -198,7 +198,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <div className="mt-2 pt-2 border-t border-white/10 space-y-1 text-[10px] text-slate-400">
                         <div className="flex justify-between">
                           <span>Daily Free:</span>
-                          <span className="font-semibold text-slate-200">{currentUser.dailyFreeCredits ?? 5}/5</span>
+                          <span className="font-semibold text-slate-200">{currentUser.dailyFreeCredits ?? 3}/3</span>
                         </div>
                         {Boolean(currentUser.planCredits) && (
                           <div className="flex justify-between">
