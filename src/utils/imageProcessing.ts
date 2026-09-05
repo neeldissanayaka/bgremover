@@ -154,15 +154,56 @@ export async function processBackgroundRemoval(
   onProgress?.(30, 'Optimizing dimensions & verifying integrity...');
   const resized = await preResizeImage(blob, MAX_PRE_RESIZE_WIDTH);
 
-  // This project does not include an /api/remove-bg server function.
-  // Use the installed IMG.LY engine directly instead of making a guaranteed
-  // failing request and waiting for an unnecessary timeout.
-  // If a real server inference endpoint is added later, wire it here explicitly.
+  // Use a real server inference endpoint when one is explicitly configured.
+  // Do NOT call a missing local endpoint by default.
+  const apiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+  if (apiBase) {
+    try {
+      onProgress?.(50, 'Sending to AI inference engine...');
+      const formData = new FormData();
+      formData.append('file', resized.blob, 'image.png');
 
-  // Client-side AI removal using @imgly/background-removal
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), 30000);
+
+      const response = await fetch(`${apiBase}/api/remove-bg`, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      });
+      window.clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const resultBlob = await response.blob();
+        if (!resultBlob.size) throw new Error('AI server returned an empty image.');
+        onProgress?.(100, 'Background removed successfully!');
+        return {
+          transparentUrl: URL.createObjectURL(resultBlob),
+          width: resized.width,
+          height: resized.height,
+        };
+      }
+
+      console.warn(`AI server returned HTTP ${response.status}; trying IMG.LY fallback.`);
+    } catch (serverErr) {
+      console.warn('Configured AI server unavailable; trying IMG.LY fallback:', serverErr);
+    }
+  }
+
+  // High-quality client-side AI removal.
+  // The previous "algorithmic segmentation" fallback produced fake/partial cutouts,
+  // so failures are now surfaced instead of silently returning a low-quality result.
   try {
-    onProgress?.(60, 'Processing with on-device neural network...');
+    onProgress?.(60, 'Processing with AI neural network...');
     const resultBlob = await removeBackground(resized.blob, {
+      debug: false,
+      device: 'cpu',
+      model: 'isnet_fp16',
+      output: {
+        format: 'image/png',
+        quality: 1,
+        type: 'foreground',
+      },
       progress: (key: string, current: number, total: number) => {
         if (total > 0) {
           const pct = Math.min(95, Math.round(50 + (current / total) * 45));
@@ -171,226 +212,17 @@ export async function processBackgroundRemoval(
       },
     });
 
-    onProgress?.(95, 'Polishing cutout transparency...');
-    const transparentUrl = URL.createObjectURL(resultBlob);
+    if (!resultBlob.size) throw new Error('AI engine returned an empty result.');
+
     onProgress?.(100, 'Background removed successfully!');
     return {
-      transparentUrl,
+      transparentUrl: URL.createObjectURL(resultBlob),
       width: resized.width,
       height: resized.height,
     };
   } catch (clientErr) {
-    console.warn('Client WASM model error, fallback to fast edge segmentation:', clientErr);
-    
-    // Algorithmic canvas cutout fallback (flood fill edge difference + alpha mask)
-    onProgress?.(80, 'Applying high-contrast subject mask...');
-    const fallbackUrl = await algorithmicBackgroundRemoval(resized.dataUrl);
-    onProgress?.(100, 'Background removed successfully!');
-    return {
-      transparentUrl: fallbackUrl,
-      width: resized.width,
-      height: resized.height,
-    };
-  }
-}
-
-/**
- * Fallback algorithmic cutout for instant demo resilience
- */
-async function algorithmicBackgroundRemoval(dataUrl: string): Promise<string> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d')!;
-      ctx.drawImage(img, 0, 0);
-
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imgData.data;
-      const w = canvas.width;
-      const h = canvas.height;
-
-      // Sample corners to detect background color
-      const sampleCorners = [
-        0, // top-left
-        (w - 1) * 4, // top-right
-        (h - 1) * w * 4, // bottom-left
-        ((h - 1) * w + (w - 1)) * 4, // bottom-right
-      ];
-
-      let bgR = 0, bgG = 0, bgB = 0;
-      for (const idx of sampleCorners) {
-        bgR += data[idx];
-        bgG += data[idx + 1];
-        bgB += data[idx + 2];
-      }
-      bgR /= 4;
-      bgG /= 4;
-      bgB /= 4;
-
-      // Calculate euclidean color distance with soft edge feathering
-      const threshold = 38;
-      const feather = 24;
-
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-
-        const dist = Math.sqrt(
-          (r - bgR) ** 2 + (g - bgG) ** 2 + (b - bgB) ** 2
-        );
-
-        if (dist < threshold) {
-          data[i + 3] = 0; // completely transparent
-        } else if (dist < threshold + feather) {
-          const alphaFactor = (dist - threshold) / feather;
-          data[i + 3] = Math.round(data[i + 3] * alphaFactor);
-        }
-      }
-
-      ctx.putImageData(imgData, 0, 0);
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.src = dataUrl;
-  });
-}
-
-/**
- * Composite rendering on HTML5 Canvas:
- * Handles Transparent, Solid Color, Blur backdrop, or Custom Scenic backdrop
- */
-export async function renderCompositeCanvas({
-  originalUrl,
-  transparentUrl,
-  mode,
-  solidColor = '#FFFFFF',
-  blurRadius = 15,
-  customBackdropUrl,
-}: {
-  originalUrl: string;
-  transparentUrl: string;
-  mode: 'transparent' | 'color' | 'blur' | 'customImage';
-  solidColor?: string;
-  blurRadius?: number;
-  customBackdropUrl?: string;
-}): Promise<HTMLCanvasElement> {
-  const [cutoutImg, origImg, backdropImg] = await Promise.all([
-    loadImage(transparentUrl),
-    loadImage(originalUrl),
-    customBackdropUrl ? loadImage(customBackdropUrl).catch(() => null) : Promise.resolve(null),
-  ]);
-
-  const canvas = document.createElement('canvas');
-  canvas.width = cutoutImg.naturalWidth || cutoutImg.width || 1200;
-  canvas.height = cutoutImg.naturalHeight || cutoutImg.height || 1200;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Canvas context could not be initialized');
-
-  // Clear canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  if (mode === 'transparent') {
-    // Just draw transparent cutout
-    ctx.drawImage(cutoutImg, 0, 0, canvas.width, canvas.height);
-  } else if (mode === 'color') {
-    // Draw solid color background
-    ctx.fillStyle = solidColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // Draw cutout on top
-    ctx.drawImage(cutoutImg, 0, 0, canvas.width, canvas.height);
-  } else if (mode === 'blur') {
-    // Draw blurred original background
-    ctx.save();
-    if (blurRadius > 0) {
-      ctx.filter = `blur(${blurRadius}px)`;
-    } else {
-      ctx.filter = 'none';
-    }
-    // Proportional overdraw to prevent semi-transparent boundary bleeding on blur edges
-    const overdraw = Math.max(16, blurRadius * 2);
-    ctx.drawImage(
-      origImg,
-      -overdraw,
-      -overdraw,
-      canvas.width + overdraw * 2,
-      canvas.height + overdraw * 2
+    console.error('Background removal AI failed:', clientErr);
+    throw new Error(
+      'Background removal AI could not load. Please check the network connection and try again.'
     );
-    ctx.restore();
-
-    // Draw 100% crisp foreground subject cutout on top
-    ctx.drawImage(cutoutImg, 0, 0, canvas.width, canvas.height);
-  } else if (mode === 'customImage' && backdropImg) {
-    // Draw custom backdrop scaled to cover
-    drawScaledImageCover(ctx, backdropImg, canvas.width, canvas.height);
-    // Draw subject on top
-    ctx.drawImage(cutoutImg, 0, 0, canvas.width, canvas.height);
-  } else {
-    ctx.drawImage(cutoutImg, 0, 0, canvas.width, canvas.height);
   }
-
-  return canvas;
-}
-
-/**
- * Utility to load an image URL safely
- */
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
-    img.src = src;
-  });
-}
-
-/**
- * Draws image with cover aspect ratio on canvas
- */
-function drawScaledImageCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, targetW: number, targetH: number) {
-  const imgW = img.naturalWidth || img.width;
-  const imgH = img.naturalHeight || img.height;
-  const scale = Math.max(targetW / imgW, targetH / imgH);
-  const w = imgW * scale;
-  const h = imgH * scale;
-  const x = (targetW - w) / 2;
-  const y = (targetH - h) / 2;
-  ctx.drawImage(img, x, y, w, h);
-}
-
-/**
- * Triggers file download from canvas
- */
-export async function downloadCanvasImage(
-  canvas: HTMLCanvasElement,
-  fileName: string,
-  format: 'png' | 'webp' = 'png',
-  quality = 0.95
-) {
-  const mime = format === 'webp' ? 'image/webp' : 'image/png';
-  const cleanBaseName = fileName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-_]/g, '_');
-  const finalName = `bgremover_${cleanBaseName}.${format}`;
-
-  return new Promise<void>((resolve) => {
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = finalName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-        resolve();
-      },
-      mime,
-      quality
-    );
-  });
-}
