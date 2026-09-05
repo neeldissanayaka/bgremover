@@ -234,9 +234,6 @@ export default function App() {
 
   // Handle uploaded file
   const handleFileSelected = async (file: File) => {
-    const isAllowed = await checkAndDeductCredit();
-    if (!isAllowed) return;
-
     setIsProcessing(true);
     setProgressPct(10);
     setProgressStep('Reading file data...');
@@ -250,6 +247,13 @@ export default function App() {
       });
 
       const safeFileName = sanitizeFileName(file.name);
+
+      // Charge only after successful processing so failed AI jobs do not consume a credit.
+      const isAllowed = await checkAndDeductCredit();
+      if (!isAllowed) {
+        URL.revokeObjectURL(originalUrl);
+        return;
+      }
 
       const newProcessed: ProcessedImage = {
         id: 'img_' + Date.now(),
@@ -274,9 +278,6 @@ export default function App() {
 
   // Handle sample thumbnail click
   const handleSampleSelected = async (sample: SampleImage) => {
-    const isAllowed = await checkAndDeductCredit();
-    if (!isAllowed) return;
-
     setIsProcessing(true);
     setProgressPct(20);
     setProgressStep(`Loading sample: ${sample.title}...`);
@@ -286,6 +287,10 @@ export default function App() {
         setProgressPct(pct);
         setProgressStep(step);
       });
+
+      // Charge only after successful processing.
+      const isAllowed = await checkAndDeductCredit();
+      if (!isAllowed) return;
 
       const newProcessed: ProcessedImage = {
         id: 'sample_' + sample.id + '_' + Date.now(),
@@ -320,9 +325,6 @@ export default function App() {
 
   // Handle URL import
   const handleUrlSubmit = async (url: string) => {
-    const isAllowed = await checkAndDeductCredit();
-    if (!isAllowed) return;
-
     setIsProcessing(true);
     setProgressPct(15);
     setProgressStep('Fetching image from link...');
@@ -332,6 +334,10 @@ export default function App() {
         setProgressPct(pct);
         setProgressStep(step);
       });
+
+      // Charge only after successful processing.
+      const isAllowed = await checkAndDeductCredit();
+      if (!isAllowed) return;
 
       const newProcessed: ProcessedImage = {
         id: 'url_' + Date.now(),

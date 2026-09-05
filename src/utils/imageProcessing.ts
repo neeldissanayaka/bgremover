@@ -154,42 +154,10 @@ export async function processBackgroundRemoval(
   onProgress?.(30, 'Optimizing dimensions & verifying integrity...');
   const resized = await preResizeImage(blob, MAX_PRE_RESIZE_WIDTH);
 
-  // Try Server API first if accessible
-  try {
-    onProgress?.(50, 'Sending to AI inference engine...');
-    const formData = new FormData();
-    formData.append('file', resized.blob, 'image.png');
-
-    // Use configured API base URL if provided in production (e.g. Vercel frontend -> Render backend)
-    const apiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-    const apiUrl = `${apiBase}/api/remove-bg`;
-
-    const apiPromise = fetch(apiUrl, {
-      method: 'POST',
-      body: formData,
-    });
-
-    // Timeout after 8 seconds if server not responding, failover to fast client-side wasm
-    const timeoutPromise = new Promise<Response>((_, reject) =>
-      setTimeout(() => reject(new Error('Server API timeout')), 8000)
-    );
-
-    const response = await Promise.race([apiPromise, timeoutPromise]);
-
-    if (response.ok) {
-      onProgress?.(85, 'Finalizing edge smoothing...');
-      const resultBlob = await response.blob();
-      const transparentUrl = URL.createObjectURL(resultBlob);
-      onProgress?.(100, 'Background removed successfully!');
-      return {
-        transparentUrl,
-        width: resized.width,
-        height: resized.height,
-      };
-    }
-  } catch (serverErr) {
-    console.log('Server API unavailable, running client-side AI engine:', serverErr);
-  }
+  // This project does not include an /api/remove-bg server function.
+  // Use the installed IMG.LY engine directly instead of making a guaranteed
+  // failing request and waiting for an unnecessary timeout.
+  // If a real server inference endpoint is added later, wire it here explicitly.
 
   // Client-side AI removal using @imgly/background-removal
   try {
