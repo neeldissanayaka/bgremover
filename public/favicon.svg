@@ -1,0 +1,67 @@
+<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Vibrant Blue Background Gradient for high contrast on light & dark SERP -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0066FF" />
+      <stop offset="50%" stop-color="#0052CC" />
+      <stop offset="100%" stop-color="#4F46E5" />
+    </linearGradient>
+
+    <!-- Checkerboard Grid Pattern for Background Cutout Concept -->
+    <pattern id="serpCheckGrid" width="12" height="12" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#FFFFFF" fill-opacity="0.9" />
+      <rect x="6" width="6" height="6" fill="#CBD5E1" />
+      <rect y="6" fill="#CBD5E1" />
+      <rect x="6" y="6" width="6" height="6" fill="#FFFFFF" fill-opacity="0.9" />
+    </pattern>
+
+    <!-- Avatar / Subject Gradient -->
+    <linearGradient id="avatarGrad" x1="45" y1="35" x2="75" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#E2E8F0" />
+    </linearGradient>
+
+    <!-- Glowing Magic Sparkle Gradient -->
+    <linearGradient id="sparkleGrad" x1="85" y1="15" x2="105" y2="35" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="50%" stop-color="#FACC15" />
+      <stop offset="100%" stop-color="#FFFFFF" />
+    </linearGradient>
+
+    <clipPath id="cardInnerClip">
+      <rect x="22" y="22" width="76" height="76" rx="16" />
+    </clipPath>
+  </defs>
+
+  <!-- Outer Squircle with vibrant blue background (stands out on Google Search) -->
+  <rect x="2" y="2" width="116" height="116" rx="28" fill="url(#bgGrad)" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="3" />
+
+  <!-- Inner Image Card (Left side original solid, Right side transparent grid) -->
+  <g clip-path="url(#cardInnerClip)">
+    <!-- Right side: Cutout Transparent Checkerboard -->
+    <rect x="22" y="22" width="76" height="76" fill="url(#serpCheckGrid)" />
+    
+    <!-- Left side: Solid Vibrant Blue Backdrop -->
+    <path d="M22 22H60V98H22V22Z" fill="#0052CC" />
+
+    <!-- Sharp Diagonal Cut Line / Divider -->
+    <line x1="60" y1="22" x2="60" y2="98" stroke="#FFFFFF" stroke-width="2.5" stroke-opacity="0.8" />
+
+    <!-- Centered Person Subject Silhouette (Crisp White) -->
+    <!-- Head -->
+    <circle cx="60" cy="50" r="13" fill="url(#avatarGrad)" />
+    <!-- Body / Shoulders -->
+    <path d="M38 98C38 78 48 68 60 68C72 68 82 78 82 98H38Z" fill="url(#avatarGrad)" />
+  </g>
+
+  <!-- High-contrast crisp border around the cutout card -->
+  <rect x="22" y="22" width="76" height="76" rx="16" stroke="#FFFFFF" stroke-width="4" fill="none" />
+
+  <!-- AI Magic Sparkle 1 (Top Right) -->
+  <path d="M96 14L98.5 24L108.5 26.5L98.5 29L96 39L93.5 29L83.5 26.5L93.5 24L96 14Z" fill="url(#sparkleGrad)" />
+  <circle cx="96" cy="26.5" r="2.5" fill="#FFFFFF" />
+
+  <!-- AI Magic Sparkle 2 (Smaller) -->
+  <path d="M106 38L107.5 43L112.5 44.5L107.5 46L106 51L104.5 46L99.5 44.5L104.5 43L106 38Z" fill="#38BDF8" />
+</svg>
+
